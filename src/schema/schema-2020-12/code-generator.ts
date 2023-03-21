@@ -127,9 +127,8 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
             true,
         );
 
-        const testExpression = this.generateCallValidatorExpression(
+        const testExpression = this.generateCallValidateTypeExpression(
             factory,
-            "isValidType",
             type,
         );
 
@@ -157,6 +156,101 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
                 generateLiteral(factory, validateArgument),
             ],
         );
+    }
+
+    private generateCallValidateTypeExpression(
+        factory: ts.NodeFactory,
+        type: unknown,
+    ) {
+
+        switch (type) {
+            case "null":
+                return factory.createCallExpression(
+                    factory.createPropertyAccessExpression(
+                        factory.createIdentifier("validation"),
+                        factory.createIdentifier("isValidNullType"),
+                    ),
+                    undefined,
+                    [
+                        factory.createIdentifier("value"),
+                    ],
+                );
+
+            case "array":
+                return factory.createCallExpression(
+                    factory.createPropertyAccessExpression(
+                        factory.createIdentifier("validation"),
+                        factory.createIdentifier("isValidArrayType"),
+                    ),
+                    undefined,
+                    [
+                        factory.createIdentifier("value"),
+                    ],
+                );
+
+            case "object":
+                return factory.createCallExpression(
+                    factory.createPropertyAccessExpression(
+                        factory.createIdentifier("validation"),
+                        factory.createIdentifier("isValidObjectType"),
+                    ),
+                    undefined,
+                    [
+                        factory.createIdentifier("value"),
+                    ],
+                );
+
+            case "string":
+                return factory.createCallExpression(
+                    factory.createPropertyAccessExpression(
+                        factory.createIdentifier("validation"),
+                        factory.createIdentifier("isValidStringType"),
+                    ),
+                    undefined,
+                    [
+                        factory.createIdentifier("value"),
+                    ],
+                );
+
+            case "number":
+                return factory.createCallExpression(
+                    factory.createPropertyAccessExpression(
+                        factory.createIdentifier("validation"),
+                        factory.createIdentifier("isValidNumberType"),
+                    ),
+                    undefined,
+                    [
+                        factory.createIdentifier("value"),
+                    ],
+                );
+
+            case "integer":
+                return factory.createCallExpression(
+                    factory.createPropertyAccessExpression(
+                        factory.createIdentifier("validation"),
+                        factory.createIdentifier("isValidIntegerType"),
+                    ),
+                    undefined,
+                    [
+                        factory.createIdentifier("value"),
+                    ],
+                );
+
+            case "boolean":
+                return factory.createCallExpression(
+                    factory.createPropertyAccessExpression(
+                        factory.createIdentifier("validation"),
+                        factory.createIdentifier("isValidBooleanType"),
+                    ),
+                    undefined,
+                    [
+                        factory.createIdentifier("value"),
+                    ],
+                );
+
+            default:
+                throw new Error("type not supported");
+        }
     }
 
     private *generateTypeValidationStatements(
@@ -469,6 +563,7 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
             nodeItem.nodePointer,
             nodeItem.node,
         );
+
         for (const [propertyName, subNodePointer] of properties) {
             const subNodeUrl = new URL(
                 pointerToHash(subNodePointer),
@@ -481,25 +576,37 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
                 throw new Error("name not found");
             }
 
-            yield factory.createExpressionStatement(factory.createYieldExpression(
-                factory.createToken(ts.SyntaxKind.AsteriskToken),
-                factory.createCallExpression(
-                    factory.createIdentifier(`validate${typeName}`),
-                    undefined,
-                    [
-                        factory.createElementAccessExpression(
-                            factory.createIdentifier("value"),
-                            factory.createStringLiteral(propertyName),
-                        ),
-                        factory.createArrayLiteralExpression(
+            yield factory.createIfStatement(
+                factory.createBinaryExpression(
+                    factory.createElementAccessExpression(
+                        factory.createIdentifier("value"),
+                        factory.createStringLiteral(propertyName),
+                    ),
+                    factory.createToken(ts.SyntaxKind.ExclamationEqualsEqualsToken),
+                    factory.createIdentifier("undefined"),
+                ),
+                factory.createBlock([
+                    factory.createExpressionStatement(factory.createYieldExpression(
+                        factory.createToken(ts.SyntaxKind.AsteriskToken),
+                        factory.createCallExpression(
+                            factory.createIdentifier(`validate${typeName}`),
+                            undefined,
                             [
-                                factory.createSpreadElement(factory.createIdentifier("path")),
-                                factory.createStringLiteral(propertyName),
+                                factory.createElementAccessExpression(
+                                    factory.createIdentifier("value"),
+                                    factory.createStringLiteral(propertyName),
+                                ),
+                                factory.createArrayLiteralExpression(
+                                    [
+                                        factory.createSpreadElement(factory.createIdentifier("path")),
+                                        factory.createStringLiteral(propertyName),
+                                    ],
+                                    false,
+                                ),
                             ],
-                            false,
-                        ),
-                    ],
-                )),
+                        )),
+                    ),
+                ], true),
             );
         }
     }
@@ -648,16 +755,33 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
         factory: ts.NodeFactory,
         nodeItem: SchemaIndexerNodeItem,
     ): ts.TypeNode {
-        if (nodeItem.node === true) {
+        const typeNodes = [...this.generateTypeNodes(factory, nodeItem)];
+        if (typeNodes.length === 0) {
             return factory.createKeywordTypeNode(
+                ts.SyntaxKind.UnknownKeyword,
+            );
+        }
+        return factory.createIntersectionTypeNode(
+            typeNodes,
+        );
+    }
+
+    private * generateTypeNodes(
+        factory: ts.NodeFactory,
+        nodeItem: SchemaIndexerNodeItem,
+    ): Iterable<ts.TypeNode> {
+        if (nodeItem.node === true) {
+            yield factory.createKeywordTypeNode(
                 ts.SyntaxKind.AnyKeyword,
             );
+            return;
         }
 
         if (nodeItem.node === false) {
-            return factory.createKeywordTypeNode(
+            yield factory.createKeywordTypeNode(
                 ts.SyntaxKind.NeverKeyword,
             );
+            return;
         }
 
         const nodeRef = selectNodeRef(nodeItem.node);
@@ -665,7 +789,7 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
             const nodeUrl = new URL(nodeRef, nodeItem.nodeBaseUrl);
             const nodeId = String(nodeUrl);
             const resolvedNodeId = this.resolveReferenceNodeId(nodeId);
-            return this.generateTypeReference(
+            yield this.generateTypeReference(
                 factory,
                 resolvedNodeId,
             );
@@ -676,7 +800,7 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
             const nodeUrl = new URL(nodeDynamicRef, nodeItem.nodeBaseUrl);
             const nodeId = String(nodeUrl);
             const resolvedNodeId = this.resolveDynamicReferenceNodeId(nodeId);
-            return this.generateTypeReference(
+            yield this.generateTypeReference(
                 factory,
                 resolvedNodeId,
             );
@@ -684,7 +808,7 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
 
         const constValue = selectNodeConst(nodeItem.node);
         if (constValue != null) {
-            return factory.createLiteralTypeNode(generatePrimitiveLiteral(
+            yield factory.createLiteralTypeNode(generatePrimitiveLiteral(
                 factory,
                 constValue,
             ));
@@ -692,7 +816,7 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
 
         const enumValues = selectNodeEnum(nodeItem.node);
         if (enumValues != null) {
-            return factory.createUnionTypeNode(
+            yield factory.createUnionTypeNode(
                 enumValues.map(value => factory.createLiteralTypeNode(generatePrimitiveLiteral(
                     factory,
                     value,
@@ -702,7 +826,7 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
 
         const anyOfEntries = [...selectNodeAnyOfEntries(nodeItem.nodePointer, nodeItem.node)];
         if (anyOfEntries.length > 0) {
-            return factory.createUnionTypeNode(
+            yield factory.createUnionTypeNode(
                 anyOfEntries.map(([subNodePointer]) => {
                     const subNodeUrl = new URL(
                         pointerToHash(subNodePointer),
@@ -719,7 +843,7 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
 
         const oneOfEntries = [...selectNodeOneOfEntries(nodeItem.nodePointer, nodeItem.node)];
         if (oneOfEntries.length > 0) {
-            return factory.createUnionTypeNode(
+            yield factory.createUnionTypeNode(
                 oneOfEntries.map(([subNodePointer]) => {
                     const subNodeUrl = new URL(
                         pointerToHash(subNodePointer),
@@ -736,7 +860,7 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
 
         const allOfEntries = [...selectNodeAllOfEntries(nodeItem.nodePointer, nodeItem.node)];
         if (allOfEntries.length > 0) {
-            return factory.createIntersectionTypeNode(
+            yield factory.createIntersectionTypeNode(
                 allOfEntries.map(([subNodePointer]) => {
                     const subNodeUrl = new URL(
                         pointerToHash(subNodePointer),
@@ -753,7 +877,7 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
 
         const types = selectNodeType(nodeItem.node);
         if (types != null) {
-            return factory.createUnionTypeNode(
+            yield factory.createUnionTypeNode(
                 types.map(type => this.generateTypeDefinition(
                     factory,
                     type,
@@ -762,9 +886,6 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
             );
         }
 
-        return factory.createKeywordTypeNode(
-            ts.SyntaxKind.UnknownKeyword,
-        );
     }
 
     private generateTypeDefinition(

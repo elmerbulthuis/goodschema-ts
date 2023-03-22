@@ -761,9 +761,9 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
                 ts.SyntaxKind.UnknownKeyword,
             );
         }
-        return factory.createIntersectionTypeNode(
+        return factory.createParenthesizedType(factory.createIntersectionTypeNode(
             typeNodes,
-        );
+        ));
     }
 
     private * generateTypeNodes(
@@ -816,17 +816,17 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
 
         const enumValues = selectNodeEnum(nodeItem.node);
         if (enumValues != null) {
-            yield factory.createUnionTypeNode(
+            yield factory.createParenthesizedType(factory.createUnionTypeNode(
                 enumValues.map(value => factory.createLiteralTypeNode(generatePrimitiveLiteral(
                     factory,
                     value,
                 ))),
-            );
+            ));
         }
 
         const anyOfEntries = [...selectNodeAnyOfEntries(nodeItem.nodePointer, nodeItem.node)];
         if (anyOfEntries.length > 0) {
-            yield factory.createUnionTypeNode(
+            yield factory.createParenthesizedType(factory.createUnionTypeNode(
                 anyOfEntries.map(([subNodePointer]) => {
                     const subNodeUrl = new URL(
                         pointerToHash(subNodePointer),
@@ -838,12 +838,12 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
                         subNodeId,
                     );
                 }),
-            );
+            ));
         }
 
         const oneOfEntries = [...selectNodeOneOfEntries(nodeItem.nodePointer, nodeItem.node)];
         if (oneOfEntries.length > 0) {
-            yield factory.createUnionTypeNode(
+            yield factory.createParenthesizedType(factory.createUnionTypeNode(
                 oneOfEntries.map(([subNodePointer]) => {
                     const subNodeUrl = new URL(
                         pointerToHash(subNodePointer),
@@ -855,12 +855,12 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
                         subNodeId,
                     );
                 }),
-            );
+            ));
         }
 
         const allOfEntries = [...selectNodeAllOfEntries(nodeItem.nodePointer, nodeItem.node)];
         if (allOfEntries.length > 0) {
-            yield factory.createIntersectionTypeNode(
+            yield factory.createParenthesizedType(factory.createIntersectionTypeNode(
                 allOfEntries.map(([subNodePointer]) => {
                     const subNodeUrl = new URL(
                         pointerToHash(subNodePointer),
@@ -872,18 +872,18 @@ export class SchemaCodeGenerator extends SchemaCodeGeneratorBase {
                         subNodeId,
                     );
                 }),
-            );
+            ));
         }
 
         const types = selectNodeType(nodeItem.node);
         if (types != null) {
-            yield factory.createUnionTypeNode(
+            yield factory.createParenthesizedType(factory.createUnionTypeNode(
                 types.map(type => this.generateTypeDefinition(
                     factory,
                     type,
                     nodeItem,
                 )),
-            );
+            ));
         }
 
     }

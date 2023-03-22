@@ -45,14 +45,14 @@
     "eslint-plugin-security": "^1.7.1",
     "tape": "^5.6.3",
     "tape-promise": "^4.0.0",
-    "typedoc": "^0.23.28",
-    "typescript": "^4.9.5"
+    "typedoc": "^0.23.28"
   },
   "dependencies": {
     "@types/yargs": "^17.0.22",
     "camelcase": "^7.0.1",
     "tslib": "^2.5.0",
     "type-fest": "^3.6.1",
+    "typescript": "^4.9.5",
     "yargs": "^17.7.1"
   }
 }

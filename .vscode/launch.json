@@ -123,6 +123,50 @@
         "${workspaceFolder}/out/**/*.js"
       ],
       "preLaunchTask": "watch"
-    }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "package output-2020-12",
+      "program": "${workspaceFolder}/src/program.ts",
+      "args": [
+        "package",
+        "file://${workspaceFolder}/fixtures/output-2020-12/schema",
+        "--package-directory",
+        ".package/output-2020-12",
+        "--package-name",
+        "output-2020-12",
+        "--package-version",
+        "0.0.0"
+      ],
+      "cwd": "${workspaceFolder}",
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+      ],
+      "preLaunchTask": "watch"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "package output-2019-09",
+      "program": "${workspaceFolder}/src/program.ts",
+      "args": [
+        "package",
+        "file://${workspaceFolder}/fixtures/output-2019-09/schema",
+        "--package-directory",
+        ".package/output-2019-09",
+        "--package-name",
+        "output-2019-09",
+        "--package-version",
+        "0.0.0"
+      ],
+      "cwd": "${workspaceFolder}",
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+      ],
+      "preLaunchTask": "watch"
+    },
   ]
 }

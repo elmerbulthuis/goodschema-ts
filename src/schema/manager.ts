@@ -14,7 +14,7 @@ import * as schemaDraft07 from "./schema-draft-07/index.js";
 export class SchemaManager {
 
     constructor(
-        public readonly namer: Namer,
+        private readonly namer: Namer,
     ) {
         //
     }

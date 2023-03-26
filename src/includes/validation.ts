@@ -1,3 +1,8 @@
+export interface PathError {
+    path: string[],
+    error: string
+}
+
 /**
  * 
  * @see https://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.6.1.1

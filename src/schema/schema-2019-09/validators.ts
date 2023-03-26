@@ -1,7 +1,7 @@
 /* eslint-disable */
 import * as validation from "../../includes/validation.js";
 import * as types from "./types.js";
-export function* validateSchema(value: types.Schema, path: string[] = []): Iterable<string[]> {
+export function* validateSchema(value: types.Schema, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidBooleanType(value)) {
     }
     else if (validation.isValidObjectType(value)) {
@@ -13,10 +13,10 @@ export function* validateSchema(value: types.Schema, path: string[] = []): Itera
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateSchemaDefinitions(value: types.SchemaDefinitions, path: string[] = []): Iterable<string[]> {
+export function* validateSchemaDefinitions(value: types.SchemaDefinitions, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidObjectType(value)) {
         for (const entry of Object.entries(value)) {
             const [key, value] = entry;
@@ -24,12 +24,12 @@ export function* validateSchemaDefinitions(value: types.SchemaDefinitions, path:
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateSchemaDefinitionsAdditionalproperties(value: types.SchemaDefinitionsAdditionalproperties, path: string[] = []): Iterable<string[]> {
+export function* validateSchemaDefinitionsAdditionalproperties(value: types.SchemaDefinitionsAdditionalproperties, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateSchemaDependencies(value: types.SchemaDependencies, path: string[] = []): Iterable<string[]> {
+export function* validateSchemaDependencies(value: types.SchemaDependencies, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidObjectType(value)) {
         for (const entry of Object.entries(value)) {
             const [key, value] = entry;
@@ -37,28 +37,28 @@ export function* validateSchemaDependencies(value: types.SchemaDependencies, pat
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateSchemaDependenciesAdditionalproperties(value: types.SchemaDependenciesAdditionalproperties, path: string[] = []): Iterable<string[]> {
+export function* validateSchemaDependenciesAdditionalproperties(value: types.SchemaDependenciesAdditionalproperties, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateSchemaDependenciesAdditionalproperties0(value: types.SchemaDependenciesAdditionalproperties0, path: string[] = []): Iterable<string[]> {
+export function* validateSchemaDependenciesAdditionalproperties0(value: types.SchemaDependenciesAdditionalproperties0, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateSchemaDependenciesAdditionalproperties1(value: types.SchemaDependenciesAdditionalproperties1, path: string[] = []): Iterable<string[]> {
+export function* validateSchemaDependenciesAdditionalproperties1(value: types.SchemaDependenciesAdditionalproperties1, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateSchema0(value: types.Schema0, path: string[] = []): Iterable<string[]> {
+export function* validateSchema0(value: types.Schema0, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateSchema1(value: types.Schema1, path: string[] = []): Iterable<string[]> {
+export function* validateSchema1(value: types.Schema1, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateSchema2(value: types.Schema2, path: string[] = []): Iterable<string[]> {
+export function* validateSchema2(value: types.Schema2, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateSchema3(value: types.Schema3, path: string[] = []): Iterable<string[]> {
+export function* validateSchema3(value: types.Schema3, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateSchema4(value: types.Schema4, path: string[] = []): Iterable<string[]> {
+export function* validateSchema4(value: types.Schema4, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateSchema5(value: types.Schema5, path: string[] = []): Iterable<string[]> {
+export function* validateSchema5(value: types.Schema5, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateValidation(value: types.Validation, path: string[] = []): Iterable<string[]> {
+export function* validateValidation(value: types.Validation, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidBooleanType(value)) {
     }
     else if (validation.isValidObjectType(value)) {
@@ -124,27 +124,27 @@ export function* validateValidation(value: types.Validation, path: string[] = []
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateValidationNonnegativeinteger(value: types.ValidationNonnegativeinteger, path: string[] = []): Iterable<string[]> {
+export function* validateValidationNonnegativeinteger(value: types.ValidationNonnegativeinteger, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidIntegerType(value)) {
         if (!validation.isValidMinimum(value, 0)) {
-            yield path;
+            yield { path, error: "minimum" };
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateValidationNonnegativeintegerdefault0(value: types.ValidationNonnegativeintegerdefault0, path: string[] = []): Iterable<string[]> {
+export function* validateValidationNonnegativeintegerdefault0(value: types.ValidationNonnegativeintegerdefault0, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateValidationSimpletypes(value: types.ValidationSimpletypes, path: string[] = []): Iterable<string[]> {
+export function* validateValidationSimpletypes(value: types.ValidationSimpletypes, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateValidationStringarray(value: types.ValidationStringarray, path: string[] = []): Iterable<string[]> {
+export function* validateValidationStringarray(value: types.ValidationStringarray, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidArrayType(value)) {
         if (!validation.isValidUniqueItems(value, true)) {
-            yield path;
+            yield { path, error: "unique-items" };
         }
         for (const entry of Object.entries(value)) {
             const [key, value] = entry;
@@ -152,87 +152,87 @@ export function* validateValidationStringarray(value: types.ValidationStringarra
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateValidationStringarrayItems(value: types.ValidationStringarrayItems, path: string[] = []): Iterable<string[]> {
+export function* validateValidationStringarrayItems(value: types.ValidationStringarrayItems, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidStringType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateValidationMultipleof(value: types.ValidationMultipleof, path: string[] = []): Iterable<string[]> {
+export function* validateValidationMultipleof(value: types.ValidationMultipleof, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidNumberType(value)) {
         if (!validation.isValidExclusiveMinimum(value, 0)) {
-            yield path;
+            yield { path, error: "exclusive-minimum" };
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateValidationMaximum(value: types.ValidationMaximum, path: string[] = []): Iterable<string[]> {
+export function* validateValidationMaximum(value: types.ValidationMaximum, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidNumberType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateValidationExclusivemaximum(value: types.ValidationExclusivemaximum, path: string[] = []): Iterable<string[]> {
+export function* validateValidationExclusivemaximum(value: types.ValidationExclusivemaximum, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidNumberType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateValidationMinimum(value: types.ValidationMinimum, path: string[] = []): Iterable<string[]> {
+export function* validateValidationMinimum(value: types.ValidationMinimum, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidNumberType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateValidationExclusiveminimum(value: types.ValidationExclusiveminimum, path: string[] = []): Iterable<string[]> {
+export function* validateValidationExclusiveminimum(value: types.ValidationExclusiveminimum, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidNumberType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateValidationMaxlength(value: types.ValidationMaxlength, path: string[] = []): Iterable<string[]> {
+export function* validateValidationMaxlength(value: types.ValidationMaxlength, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateValidationMinlength(value: types.ValidationMinlength, path: string[] = []): Iterable<string[]> {
+export function* validateValidationMinlength(value: types.ValidationMinlength, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateValidationPattern(value: types.ValidationPattern, path: string[] = []): Iterable<string[]> {
+export function* validateValidationPattern(value: types.ValidationPattern, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidStringType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateValidationMaxitems(value: types.ValidationMaxitems, path: string[] = []): Iterable<string[]> {
+export function* validateValidationMaxitems(value: types.ValidationMaxitems, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateValidationMinitems(value: types.ValidationMinitems, path: string[] = []): Iterable<string[]> {
+export function* validateValidationMinitems(value: types.ValidationMinitems, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateValidationUniqueitems(value: types.ValidationUniqueitems, path: string[] = []): Iterable<string[]> {
+export function* validateValidationUniqueitems(value: types.ValidationUniqueitems, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidBooleanType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateValidationMaxcontains(value: types.ValidationMaxcontains, path: string[] = []): Iterable<string[]> {
+export function* validateValidationMaxcontains(value: types.ValidationMaxcontains, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateValidationMincontains(value: types.ValidationMincontains, path: string[] = []): Iterable<string[]> {
+export function* validateValidationMincontains(value: types.ValidationMincontains, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateValidationMaxproperties(value: types.ValidationMaxproperties, path: string[] = []): Iterable<string[]> {
+export function* validateValidationMaxproperties(value: types.ValidationMaxproperties, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateValidationMinproperties(value: types.ValidationMinproperties, path: string[] = []): Iterable<string[]> {
+export function* validateValidationMinproperties(value: types.ValidationMinproperties, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateValidationRequired(value: types.ValidationRequired, path: string[] = []): Iterable<string[]> {
+export function* validateValidationRequired(value: types.ValidationRequired, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateValidationDependentrequired(value: types.ValidationDependentrequired, path: string[] = []): Iterable<string[]> {
+export function* validateValidationDependentrequired(value: types.ValidationDependentrequired, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidObjectType(value)) {
         for (const entry of Object.entries(value)) {
             const [key, value] = entry;
@@ -240,14 +240,14 @@ export function* validateValidationDependentrequired(value: types.ValidationDepe
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateValidationDependentrequiredAdditionalproperties(value: types.ValidationDependentrequiredAdditionalproperties, path: string[] = []): Iterable<string[]> {
+export function* validateValidationDependentrequiredAdditionalproperties(value: types.ValidationDependentrequiredAdditionalproperties, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateValidationConst(value: types.ValidationConst, path: string[] = []): Iterable<string[]> {
+export function* validateValidationConst(value: types.ValidationConst, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateValidationEnum(value: types.ValidationEnum, path: string[] = []): Iterable<string[]> {
+export function* validateValidationEnum(value: types.ValidationEnum, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidArrayType(value)) {
         for (const entry of Object.entries(value)) {
             const [key, value] = entry;
@@ -255,22 +255,22 @@ export function* validateValidationEnum(value: types.ValidationEnum, path: strin
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateValidationEnumItems(value: types.ValidationEnumItems, path: string[] = []): Iterable<string[]> {
+export function* validateValidationEnumItems(value: types.ValidationEnumItems, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateValidationType(value: types.ValidationType, path: string[] = []): Iterable<string[]> {
+export function* validateValidationType(value: types.ValidationType, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateValidationType0(value: types.ValidationType0, path: string[] = []): Iterable<string[]> {
+export function* validateValidationType0(value: types.ValidationType0, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateValidationType1(value: types.ValidationType1, path: string[] = []): Iterable<string[]> {
+export function* validateValidationType1(value: types.ValidationType1, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidArrayType(value)) {
         if (!validation.isValidMinItems(value, 1)) {
-            yield path;
+            yield { path, error: "min-items" };
         }
         if (!validation.isValidUniqueItems(value, true)) {
-            yield path;
+            yield { path, error: "unique-items" };
         }
         for (const entry of Object.entries(value)) {
             const [key, value] = entry;
@@ -278,12 +278,12 @@ export function* validateValidationType1(value: types.ValidationType1, path: str
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateValidationType1Items(value: types.ValidationType1Items, path: string[] = []): Iterable<string[]> {
+export function* validateValidationType1Items(value: types.ValidationType1Items, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateCore(value: types.Core, path: string[] = []): Iterable<string[]> {
+export function* validateCore(value: types.Core, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidBooleanType(value)) {
     }
     else if (validation.isValidObjectType(value)) {
@@ -316,58 +316,58 @@ export function* validateCore(value: types.Core, path: string[] = []): Iterable<
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateCoreId(value: types.CoreId, path: string[] = []): Iterable<string[]> {
+export function* validateCoreId(value: types.CoreId, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidStringType(value)) {
         if (!validation.isValidPattern(value, "^[^#]*#?$")) {
-            yield path;
+            yield { path, error: "pattern" };
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateCoreSchema(value: types.CoreSchema, path: string[] = []): Iterable<string[]> {
+export function* validateCoreSchema(value: types.CoreSchema, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidStringType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateCoreAnchor(value: types.CoreAnchor, path: string[] = []): Iterable<string[]> {
+export function* validateCoreAnchor(value: types.CoreAnchor, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidStringType(value)) {
         if (!validation.isValidPattern(value, "^[A-Za-z][-A-Za-z0-9.:_]*$")) {
-            yield path;
+            yield { path, error: "pattern" };
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateCoreRef(value: types.CoreRef, path: string[] = []): Iterable<string[]> {
+export function* validateCoreRef(value: types.CoreRef, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidStringType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateCoreRecursiveref(value: types.CoreRecursiveref, path: string[] = []): Iterable<string[]> {
+export function* validateCoreRecursiveref(value: types.CoreRecursiveref, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidStringType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateCoreRecursiveanchor(value: types.CoreRecursiveanchor, path: string[] = []): Iterable<string[]> {
+export function* validateCoreRecursiveanchor(value: types.CoreRecursiveanchor, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidBooleanType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateCoreVocabulary(value: types.CoreVocabulary, path: string[] = []): Iterable<string[]> {
+export function* validateCoreVocabulary(value: types.CoreVocabulary, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidObjectType(value)) {
         for (const entry of Object.entries(value)) {
             const [key, value] = entry;
@@ -375,24 +375,24 @@ export function* validateCoreVocabulary(value: types.CoreVocabulary, path: strin
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateCoreVocabularyAdditionalproperties(value: types.CoreVocabularyAdditionalproperties, path: string[] = []): Iterable<string[]> {
+export function* validateCoreVocabularyAdditionalproperties(value: types.CoreVocabularyAdditionalproperties, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidBooleanType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateCoreComment(value: types.CoreComment, path: string[] = []): Iterable<string[]> {
+export function* validateCoreComment(value: types.CoreComment, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidStringType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateCoreDefs(value: types.CoreDefs, path: string[] = []): Iterable<string[]> {
+export function* validateCoreDefs(value: types.CoreDefs, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidObjectType(value)) {
         for (const entry of Object.entries(value)) {
             const [key, value] = entry;
@@ -400,12 +400,12 @@ export function* validateCoreDefs(value: types.CoreDefs, path: string[] = []): I
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateCoreDefsAdditionalproperties(value: types.CoreDefsAdditionalproperties, path: string[] = []): Iterable<string[]> {
+export function* validateCoreDefsAdditionalproperties(value: types.CoreDefsAdditionalproperties, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicator(value: types.Applicator, path: string[] = []): Iterable<string[]> {
+export function* validateApplicator(value: types.Applicator, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidBooleanType(value)) {
     }
     else if (validation.isValidObjectType(value)) {
@@ -462,13 +462,13 @@ export function* validateApplicator(value: types.Applicator, path: string[] = []
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateApplicatorSchemaarray(value: types.ApplicatorSchemaarray, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorSchemaarray(value: types.ApplicatorSchemaarray, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidArrayType(value)) {
         if (!validation.isValidMinItems(value, 1)) {
-            yield path;
+            yield { path, error: "min-items" };
         }
         for (const entry of Object.entries(value)) {
             const [key, value] = entry;
@@ -476,28 +476,28 @@ export function* validateApplicatorSchemaarray(value: types.ApplicatorSchemaarra
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateApplicatorSchemaarrayItems(value: types.ApplicatorSchemaarrayItems, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorSchemaarrayItems(value: types.ApplicatorSchemaarrayItems, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorAdditionalitems(value: types.ApplicatorAdditionalitems, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorAdditionalitems(value: types.ApplicatorAdditionalitems, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorUnevaluateditems(value: types.ApplicatorUnevaluateditems, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorUnevaluateditems(value: types.ApplicatorUnevaluateditems, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorItems(value: types.ApplicatorItems, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorItems(value: types.ApplicatorItems, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorItems0(value: types.ApplicatorItems0, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorItems0(value: types.ApplicatorItems0, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorItems1(value: types.ApplicatorItems1, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorItems1(value: types.ApplicatorItems1, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorContains(value: types.ApplicatorContains, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorContains(value: types.ApplicatorContains, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorAdditionalproperties(value: types.ApplicatorAdditionalproperties, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorAdditionalproperties(value: types.ApplicatorAdditionalproperties, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorUnevaluatedproperties(value: types.ApplicatorUnevaluatedproperties, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorUnevaluatedproperties(value: types.ApplicatorUnevaluatedproperties, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorProperties(value: types.ApplicatorProperties, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorProperties(value: types.ApplicatorProperties, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidObjectType(value)) {
         for (const entry of Object.entries(value)) {
             const [key, value] = entry;
@@ -505,12 +505,12 @@ export function* validateApplicatorProperties(value: types.ApplicatorProperties,
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateApplicatorPropertiesAdditionalproperties(value: types.ApplicatorPropertiesAdditionalproperties, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorPropertiesAdditionalproperties(value: types.ApplicatorPropertiesAdditionalproperties, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorPatternproperties(value: types.ApplicatorPatternproperties, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorPatternproperties(value: types.ApplicatorPatternproperties, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidObjectType(value)) {
         for (const entry of Object.entries(value)) {
             const [key, value] = entry;
@@ -518,12 +518,12 @@ export function* validateApplicatorPatternproperties(value: types.ApplicatorPatt
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateApplicatorPatternpropertiesAdditionalproperties(value: types.ApplicatorPatternpropertiesAdditionalproperties, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorPatternpropertiesAdditionalproperties(value: types.ApplicatorPatternpropertiesAdditionalproperties, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorDependentschemas(value: types.ApplicatorDependentschemas, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorDependentschemas(value: types.ApplicatorDependentschemas, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidObjectType(value)) {
         for (const entry of Object.entries(value)) {
             const [key, value] = entry;
@@ -531,28 +531,28 @@ export function* validateApplicatorDependentschemas(value: types.ApplicatorDepen
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateApplicatorDependentschemasAdditionalproperties(value: types.ApplicatorDependentschemasAdditionalproperties, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorDependentschemasAdditionalproperties(value: types.ApplicatorDependentschemasAdditionalproperties, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorPropertynames(value: types.ApplicatorPropertynames, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorPropertynames(value: types.ApplicatorPropertynames, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorIf(value: types.ApplicatorIf, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorIf(value: types.ApplicatorIf, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorThen(value: types.ApplicatorThen, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorThen(value: types.ApplicatorThen, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorElse(value: types.ApplicatorElse, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorElse(value: types.ApplicatorElse, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorAllof(value: types.ApplicatorAllof, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorAllof(value: types.ApplicatorAllof, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorAnyof(value: types.ApplicatorAnyof, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorAnyof(value: types.ApplicatorAnyof, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorOneof(value: types.ApplicatorOneof, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorOneof(value: types.ApplicatorOneof, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateApplicatorNot(value: types.ApplicatorNot, path: string[] = []): Iterable<string[]> {
+export function* validateApplicatorNot(value: types.ApplicatorNot, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateMetadata(value: types.Metadata, path: string[] = []): Iterable<string[]> {
+export function* validateMetadata(value: types.Metadata, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidBooleanType(value)) {
     }
     else if (validation.isValidObjectType(value)) {
@@ -579,47 +579,47 @@ export function* validateMetadata(value: types.Metadata, path: string[] = []): I
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateMetadataTitle(value: types.MetadataTitle, path: string[] = []): Iterable<string[]> {
+export function* validateMetadataTitle(value: types.MetadataTitle, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidStringType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateMetadataDescription(value: types.MetadataDescription, path: string[] = []): Iterable<string[]> {
+export function* validateMetadataDescription(value: types.MetadataDescription, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidStringType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateMetadataDefault(value: types.MetadataDefault, path: string[] = []): Iterable<string[]> {
+export function* validateMetadataDefault(value: types.MetadataDefault, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateMetadataDeprecated(value: types.MetadataDeprecated, path: string[] = []): Iterable<string[]> {
+export function* validateMetadataDeprecated(value: types.MetadataDeprecated, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidBooleanType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateMetadataReadonly(value: types.MetadataReadonly, path: string[] = []): Iterable<string[]> {
+export function* validateMetadataReadonly(value: types.MetadataReadonly, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidBooleanType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateMetadataWriteonly(value: types.MetadataWriteonly, path: string[] = []): Iterable<string[]> {
+export function* validateMetadataWriteonly(value: types.MetadataWriteonly, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidBooleanType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateMetadataExamples(value: types.MetadataExamples, path: string[] = []): Iterable<string[]> {
+export function* validateMetadataExamples(value: types.MetadataExamples, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidArrayType(value)) {
         for (const entry of Object.entries(value)) {
             const [key, value] = entry;
@@ -627,12 +627,12 @@ export function* validateMetadataExamples(value: types.MetadataExamples, path: s
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateMetadataExamplesItems(value: types.MetadataExamplesItems, path: string[] = []): Iterable<string[]> {
+export function* validateMetadataExamplesItems(value: types.MetadataExamplesItems, path: string[] = []): Iterable<validation.PathError> {
 }
-export function* validateFormat(value: types.Format, path: string[] = []): Iterable<string[]> {
+export function* validateFormat(value: types.Format, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidBooleanType(value)) {
     }
     else if (validation.isValidObjectType(value)) {
@@ -641,17 +641,17 @@ export function* validateFormat(value: types.Format, path: string[] = []): Itera
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateFormatFormat(value: types.FormatFormat, path: string[] = []): Iterable<string[]> {
+export function* validateFormatFormat(value: types.FormatFormat, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidStringType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateContent(value: types.Content, path: string[] = []): Iterable<string[]> {
+export function* validateContent(value: types.Content, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidBooleanType(value)) {
     }
     else if (validation.isValidObjectType(value)) {
@@ -666,22 +666,22 @@ export function* validateContent(value: types.Content, path: string[] = []): Ite
         }
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateContentContentmediatype(value: types.ContentContentmediatype, path: string[] = []): Iterable<string[]> {
+export function* validateContentContentmediatype(value: types.ContentContentmediatype, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidStringType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateContentContentencoding(value: types.ContentContentencoding, path: string[] = []): Iterable<string[]> {
+export function* validateContentContentencoding(value: types.ContentContentencoding, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidStringType(value)) {
     }
     else {
-        yield path;
+        yield { path, error: "type" };
     }
 }
-export function* validateContentContentschema(value: types.ContentContentschema, path: string[] = []): Iterable<string[]> {
+export function* validateContentContentschema(value: types.ContentContentschema, path: string[] = []): Iterable<validation.PathError> {
 }

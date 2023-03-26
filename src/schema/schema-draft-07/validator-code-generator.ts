@@ -28,7 +28,13 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
             let statement: ts.Statement = factory.createBlock([
                 factory.createExpressionStatement(factory.createYieldExpression(
                     undefined,
-                    factory.createIdentifier("path"),
+                    factory.createObjectLiteralExpression([
+                        factory.createShorthandPropertyAssignment(factory.createIdentifier("path")),
+                        factory.createPropertyAssignment(
+                            "error",
+                            factory.createStringLiteral("type"),
+                        ),
+                    ]),
                 )),
             ]);
             for (const type of types) {
@@ -65,6 +71,7 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
                     "isValidMinItems",
                     minItems,
                 ),
+                "min-items",
             );
         }
         if (maxItems != null) {
@@ -75,6 +82,7 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
                     "isValidMaxItems",
                     maxItems,
                 ),
+                "max-items",
             );
         }
         if (uniqueItems != null) {
@@ -85,6 +93,7 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
                     "isValidUniqueItems",
                     uniqueItems,
                 ),
+                "unique-items",
             );
         }
 
@@ -228,6 +237,7 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
                     "isValidMinProperties",
                     minProperties,
                 ),
+                "min-properties",
             );
         }
         if (maxProperties != null) {
@@ -238,6 +248,7 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
                     "isValidMaxProperties",
                     maxProperties,
                 ),
+                "max-properties",
             );
         }
         if (required != null) {
@@ -248,6 +259,7 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
                     "isValidRequired",
                     required,
                 ),
+                "required",
             );
         }
 
@@ -399,6 +411,7 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
                     "isValidMinLength",
                     minLength,
                 ),
+                "min-length",
             );
         }
         if (maxLength != null) {
@@ -409,6 +422,7 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
                     "isValidMaxLength",
                     maxLength,
                 ),
+                "max-length",
             );
         }
         if (pattern != null) {
@@ -419,6 +433,7 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
                     "isValidPattern",
                     pattern,
                 ),
+                "pattern",
             );
         }
     }
@@ -446,6 +461,7 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
                     "isValidMinimum",
                     minimum,
                 ),
+                "minimum",
             );
         }
         if (exclusiveMinimum != null) {
@@ -456,6 +472,7 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
                     "isValidExclusiveMinimum",
                     exclusiveMinimum,
                 ),
+                "exclusive-minimum",
             );
         }
         if (maximum != null) {
@@ -466,6 +483,7 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
                     "isValidMaximum",
                     maximum,
                 ),
+                "maximum",
             );
         }
         if (exclusiveMaximum != null) {
@@ -476,6 +494,7 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
                     "isValidExclusiveMaximum",
                     exclusiveMaximum,
                 ),
+                "exclusive-maximum",
             );
         }
         if (multipleOf != null) {
@@ -486,6 +505,7 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
                     "isValidMultipleOf",
                     multipleOf,
                 ),
+                "multiple-of",
             );
         }
     }

@@ -97,8 +97,10 @@ export abstract class SchemaValidatorCodeGeneratorBase extends SchemaCodeGenerat
             factory.createTypeReferenceNode(
                 factory.createIdentifier("Iterable"),
                 [
-                    factory.createArrayTypeNode(
-                        factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+                    factory.createTypeReferenceNode(factory.createQualifiedName(
+                        factory.createIdentifier("validation"),
+                        factory.createIdentifier("PathError"),
+                    ),
                     ),
                 ],
             ),
@@ -174,6 +176,7 @@ export abstract class SchemaValidatorCodeGeneratorBase extends SchemaCodeGenerat
     protected wrapValidationExpression(
         factory: ts.NodeFactory,
         testExpression: ts.Expression,
+        error: string,
     ) {
         return factory.createIfStatement(
             factory.createPrefixUnaryExpression(
@@ -183,7 +186,13 @@ export abstract class SchemaValidatorCodeGeneratorBase extends SchemaCodeGenerat
             factory.createBlock([
                 factory.createExpressionStatement(factory.createYieldExpression(
                     undefined,
-                    factory.createIdentifier("path"),
+                    factory.createObjectLiteralExpression([
+                        factory.createShorthandPropertyAssignment(factory.createIdentifier("path")),
+                        factory.createPropertyAssignment(
+                            "error",
+                            factory.createStringLiteral(error),
+                        ),
+                    ]),
                 )),
             ]),
         );

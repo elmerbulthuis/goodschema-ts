@@ -1,4 +1,7 @@
 /* eslint-disable */
+/**
+Core schema meta-schema
+*/
 export type Schema = (({
     id?: SchemaId;
     $schema?: SchemaSchema;

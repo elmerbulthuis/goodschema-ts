@@ -5,13 +5,25 @@ export type Schema = ((Schema0 & Schema1 & Schema2 & Schema3 & Schema4 & Schema5
     $recursiveAnchor?: SchemaRecursiveanchor;
     $recursiveRef?: SchemaRecursiveref;
 } | boolean));
+/**
+@deprecated
+*/
 export type SchemaDefinitions = ((Record<string, SchemaDefinitionsAdditionalproperties>));
 export type SchemaDefinitionsAdditionalproperties = (Schema);
+/**
+@deprecated
+*/
 export type SchemaDependencies = ((Record<string, SchemaDependenciesAdditionalproperties>));
 export type SchemaDependenciesAdditionalproperties = ((SchemaDependenciesAdditionalproperties0 | SchemaDependenciesAdditionalproperties1));
 export type SchemaDependenciesAdditionalproperties0 = (Schema);
 export type SchemaDependenciesAdditionalproperties1 = (ValidationStringarray);
+/**
+@deprecated
+*/
 export type SchemaRecursiveanchor = (CoreAnchorstring);
+/**
+@deprecated
+*/
 export type SchemaRecursiveref = (CoreUrireferencestring);
 export type Schema0 = (Core);
 export type Schema1 = (Applicator);

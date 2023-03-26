@@ -52,9 +52,6 @@ export abstract class SchemaValidatorCodeGeneratorBase extends SchemaCodeGenerat
         nodeId: string,
     ) {
         const typeName = this.manager.getName(nodeId);
-        if (typeName == null) {
-            throw new Error("typeName not found");
-        }
 
         yield this.generateValidatorFunctionDeclarationStatement(
             factory,
@@ -317,9 +314,6 @@ export abstract class SchemaValidatorCodeGeneratorBase extends SchemaCodeGenerat
         nodeId: string,
     ) {
         const typeName = this.manager.getName(nodeId);
-        if (typeName == null) {
-            throw new Error("typeName not found");
-        }
         return factory.createTypeReferenceNode(
             factory.createQualifiedName(
                 factory.createIdentifier("types"),

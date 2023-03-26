@@ -34,8 +34,16 @@ export abstract class SchemaLoaderBase<N> {
 
     private readonly rootNodeMap = new Map<string, SchemaLoaderRootNodeItem<N>>();
 
+    public hasRootNodeItem(nodeId: string) {
+        return this.rootNodeMap.has(nodeId);
+    }
+
     public getRootNodeItem(nodeId: string) {
-        return this.rootNodeMap.get(nodeId);
+        const item = this.rootNodeMap.get(nodeId);
+        if (item == null) {
+            throw new Error("root node item not found");
+        }
+        return item;
     }
 
     public getRootNodeItems() {

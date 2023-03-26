@@ -195,7 +195,7 @@ export class SchemaExampleGenerator extends SchemaExampleGeneratorBase {
             yield [1, createString(maxLength + 1)];
         }
         if (pattern != null) {
-            // throw new Error("not implemented");
+            throw new Error("not implemented");
         }
 
         // TODO robust implementation

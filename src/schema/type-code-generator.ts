@@ -64,9 +64,6 @@ export abstract class SchemaTypeCodeGeneratorBase extends SchemaCodeGeneratorBas
         nodeId: string,
     ) {
         const typeName = this.manager.getName(nodeId);
-        if (typeName == null) {
-            throw new Error("typeName not found");
-        }
 
         yield this.generateSchemaTypeDeclarationStatement(
             factory,
@@ -177,9 +174,6 @@ export abstract class SchemaTypeCodeGeneratorBase extends SchemaCodeGeneratorBas
         nodeId: string,
     ) {
         const typeName = this.manager.getName(nodeId);
-        if (typeName == null) {
-            throw new Error("typeName not found");
-        }
         return factory.createTypeReferenceNode(
             factory.createIdentifier(typeName),
         );

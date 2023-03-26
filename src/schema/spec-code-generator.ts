@@ -65,9 +65,6 @@ export abstract class SchemaSpecCodeGeneratorBase extends SchemaCodeGeneratorBas
         nodeId: string,
     ): Iterable<ts.Statement> {
         const name = this.manager.getName(nodeId);
-        if (name == null) {
-            throw new Error("name not found");
-        }
 
         yield factory.createVariableStatement(
             undefined,
@@ -231,9 +228,6 @@ export abstract class SchemaSpecCodeGeneratorBase extends SchemaCodeGeneratorBas
         nodeId: string,
     ): Iterable<ts.Statement> {
         const name = this.manager.getName(nodeId);
-        if (name == null) {
-            throw new Error("name not found");
-        }
 
         yield factory.createVariableStatement(
             undefined,

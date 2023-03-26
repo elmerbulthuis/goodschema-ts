@@ -170,9 +170,6 @@ export class SchemaManager {
             referencingUrl,
             defaultMetaSchemaId,
         );
-        if (rootNodeUrl == null) {
-            throw new Error("rootNode not found");
-        }
 
         const rootNodeId = String(rootNodeUrl);
 
@@ -486,9 +483,6 @@ export class SchemaManager {
         const indexer: SchemaIndexerBase<unknown> = this.indexers[metaSchemaId];
 
         const item = indexer.getNodeItem(nodeId);
-        if (item == null) {
-            throw new Error("item nog found");
-        }
 
         const {
             node,

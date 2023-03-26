@@ -104,9 +104,6 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
                 const subNodeId = String(subNodeUrl);
 
                 const typeName = this.manager.getName(subNodeId);
-                if (typeName == null) {
-                    throw new Error("name not found");
-                }
 
                 yield factory.createForOfStatement(
                     undefined,
@@ -182,9 +179,6 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
                 const subNodeId = String(subNodeUrl);
 
                 const typeName = this.manager.getName(subNodeId);
-                if (typeName == null) {
-                    throw new Error("name not found");
-                }
 
                 yield factory.createExpressionStatement(factory.createYieldExpression(
                     factory.createToken(ts.SyntaxKind.AsteriskToken),
@@ -222,9 +216,6 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
             const subNodeId = String(subNodeUrl);
 
             const typeName = this.manager.getName(subNodeId);
-            if (typeName == null) {
-                throw new Error("name not found");
-            }
 
             yield factory.createForOfStatement(
                 undefined,
@@ -343,9 +334,6 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
             const subNodeId = String(subNodeUrl);
 
             const typeName = this.manager.getName(subNodeId);
-            if (typeName == null) {
-                throw new Error("name not found");
-            }
 
             yield factory.createForOfStatement(
                 undefined,
@@ -419,9 +407,6 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
             const subNodeId = String(subNodeUrl);
 
             const typeName = this.manager.getName(subNodeId);
-            if (typeName == null) {
-                throw new Error("name not found");
-            }
 
             yield factory.createIfStatement(
                 factory.createBinaryExpression(

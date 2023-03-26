@@ -101,9 +101,6 @@ export class SchemaIndexer extends SchemaIndexerBase<Schema> {
         while (currentRootNodeUrl != null) {
             const currentRootNodeId = String(currentRootNodeUrl);
             const currentRootNode = this.loader.getRootNodeItem(currentRootNodeId);
-            if (currentRootNode == null) {
-                throw new Error("rootNode not found");
-            }
 
             const currentNodeUrl = new URL(
                 hash,

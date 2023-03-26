@@ -58,9 +58,6 @@ export class SchemaIndexer extends SchemaIndexerBase<Schema> {
 
     public resolveReferenceNodeId(nodeId: string, nodeRef: string) {
         const nodeItem = this.getNodeItem(nodeId);
-        if (nodeItem == null) {
-            throw new Error("nodeItem not found");
-        }
 
         const nodeRootId = String(nodeItem.nodeRootUrl);
         const nodeRetrievalUrl = this.manager.getNodeRetrievalUrl(nodeRootId);
@@ -86,9 +83,6 @@ export class SchemaIndexer extends SchemaIndexerBase<Schema> {
 
     public resolveDynamicReferenceNodeId(nodeId: string, nodeDynamicRef: string) {
         const nodeItem = this.getNodeItem(nodeId);
-        if (nodeItem == null) {
-            throw new Error("nodeItem not found");
-        }
 
         const nodeRootId = String(nodeItem.nodeRootUrl);
         const nodeRetrievalUrl = this.manager.getNodeRetrievalUrl(nodeRootId);

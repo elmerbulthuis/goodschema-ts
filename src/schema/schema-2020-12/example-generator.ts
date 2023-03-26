@@ -16,9 +16,6 @@ export class SchemaExampleGenerator extends SchemaExampleGeneratorBase {
         nodeId: string,
     ): Iterable<[number, unknown]> {
         const nodeItem = this.indexer.getNodeItem(nodeId);
-        if (!nodeItem) {
-            throw new Error("node item nod found");
-        }
 
         const nodeRef = selectNodeRef(nodeItem.node);
         if (nodeRef != null) {
@@ -55,9 +52,6 @@ export class SchemaExampleGenerator extends SchemaExampleGeneratorBase {
         nodeId: string,
     ): Iterable<[number, unknown]> {
         const nodeItem = this.indexer.getNodeItem(nodeId);
-        if (!nodeItem) {
-            throw new Error("node item nod found");
-        }
 
         const itemsEntries = selectNodeItemsEntries(nodeItem.nodePointer, nodeItem.node);
 
@@ -77,9 +71,6 @@ export class SchemaExampleGenerator extends SchemaExampleGeneratorBase {
         nodeId: string,
     ): Iterable<[number, unknown]> {
         const nodeItem = this.indexer.getNodeItem(nodeId);
-        if (!nodeItem) {
-            throw new Error("node item nod found");
-        }
 
         const propertyNameEntries =
             [...selectNodePropertyNamesEntries(nodeItem.nodePointer, nodeItem.node)];
@@ -195,9 +186,6 @@ export class SchemaExampleGenerator extends SchemaExampleGeneratorBase {
         nodeId: string,
     ): Iterable<[number, unknown]> {
         const nodeItem = this.indexer.getNodeItem(nodeId);
-        if (!nodeItem) {
-            throw new Error("node item nod found");
-        }
 
         const validationMinLength = selectValidationMinLength(nodeItem.node);
         const validationMaxLength = selectValidationMaxLength(nodeItem.node);
@@ -235,9 +223,6 @@ export class SchemaExampleGenerator extends SchemaExampleGeneratorBase {
         nodeId: string,
     ): Iterable<[number, unknown]> {
         const nodeItem = this.indexer.getNodeItem(nodeId);
-        if (!nodeItem) {
-            throw new Error("node item nod found");
-        }
 
         const validationMinimum = selectValidationMinimum(nodeItem.node);
         const validationExclusiveMinimum = selectValidationExclusiveMinimum(nodeItem.node);
@@ -287,9 +272,6 @@ export class SchemaExampleGenerator extends SchemaExampleGeneratorBase {
         nodeId: string,
     ): Iterable<[number, unknown]> {
         const nodeItem = this.indexer.getNodeItem(nodeId);
-        if (!nodeItem) {
-            throw new Error("node item nod found");
-        }
 
         const minimum = selectValidationMinimum(nodeItem.node);
         const exclusiveMinimum = selectValidationExclusiveMinimum(nodeItem.node);

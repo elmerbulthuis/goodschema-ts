@@ -29,8 +29,16 @@ export abstract class SchemaIndexerBase<N> {
 
     private readonly nodeMap = new Map<string, SchemaIndexerNodeItem<N>>();
 
+    public hasNodeItem(nodeId: string) {
+        return this.nodeMap.has(nodeId);
+    }
+
     public getNodeItem(nodeId: string) {
-        return this.nodeMap.get(nodeId);
+        const item = this.nodeMap.get(nodeId);
+        if (item == null) {
+            throw new Error("node item not found");
+        }
+        return item;
     }
 
     public indexNodes(

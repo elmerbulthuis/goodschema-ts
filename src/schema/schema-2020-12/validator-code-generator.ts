@@ -17,9 +17,6 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
         nodeId: string,
     ): Iterable<ts.Statement> {
         const nodeItem = this.indexer.getNodeItem(nodeId);
-        if (nodeItem == null) {
-            throw new Error("nodeItem not found");
-        }
 
         yield* this.generateCommonValidationStatements(factory, nodeId);
 
@@ -54,9 +51,6 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
         nodeId: string,
     ): Iterable<ts.Statement> {
         const nodeItem = this.indexer.getNodeItem(nodeId);
-        if (nodeItem == null) {
-            throw new Error("nodeItem not found");
-        }
 
         const nodeRef = selectNodeRef(nodeItem.node);
         if (nodeRef != null) {
@@ -115,9 +109,6 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
         nodeId: string,
     ) {
         const nodeItem = this.indexer.getNodeItem(nodeId);
-        if (nodeItem == null) {
-            throw new Error("nodeItem not found");
-        }
 
         const minItems = selectValidationMinItems(nodeItem.node);
         const maxItems = selectValidationMaxItems(nodeItem.node);
@@ -281,9 +272,6 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
         nodeId: string,
     ) {
         const nodeItem = this.indexer.getNodeItem(nodeId);
-        if (nodeItem == null) {
-            throw new Error("nodeItem not found");
-        }
 
         const minProperties = selectValidationMinProperties(nodeItem.node);
         const maxProperties = selectValidationMaxProperties(nodeItem.node);
@@ -455,9 +443,6 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
         nodeId: string,
     ) {
         const nodeItem = this.indexer.getNodeItem(nodeId);
-        if (nodeItem == null) {
-            throw new Error("nodeItem not found");
-        }
 
         const minLength = selectValidationMinLength(nodeItem.node);
         const maxLength = selectValidationMaxLength(nodeItem.node);
@@ -503,9 +488,6 @@ export class SchemaValidatorCodeGenerator extends SchemaValidatorCodeGeneratorBa
         nodeId: string,
     ) {
         const nodeItem = this.indexer.getNodeItem(nodeId);
-        if (nodeItem == null) {
-            throw new Error("nodeItem not found");
-        }
 
         const minimum = selectValidationMinimum(nodeItem.node);
         const exclusiveMinimum = selectValidationExclusiveMinimum(nodeItem.node);

@@ -15,9 +15,6 @@ export class SchemaTypeCodeGenerator extends SchemaTypeCodeGeneratorBase {
 
     protected getComments(nodeId: string): string {
         const nodeItem = this.indexer.getNodeItem(nodeId);
-        if (nodeItem == null) {
-            throw new Error("nodeItem not found");
-        }
 
         const description = selectNodeDescription(nodeItem.node) ?? "";
         const deprecated = selectNodeDeprecated(nodeItem.node) ?? false;
@@ -39,9 +36,6 @@ export class SchemaTypeCodeGenerator extends SchemaTypeCodeGeneratorBase {
         nodeId: string,
     ): Iterable<ts.TypeNode> {
         const nodeItem = this.indexer.getNodeItem(nodeId);
-        if (nodeItem == null) {
-            throw new Error("nodeItem not found");
-        }
 
         if (nodeItem.node === true) {
             yield factory.createKeywordTypeNode(
@@ -170,9 +164,6 @@ export class SchemaTypeCodeGenerator extends SchemaTypeCodeGeneratorBase {
         nodeId: string,
     ): ts.TypeNode {
         const nodeItem = this.indexer.getNodeItem(nodeId);
-        if (nodeItem == null) {
-            throw new Error("nodeItem not found");
-        }
 
         const additionalPropertiesEntries = selectNodeAdditionalPropertiesEntries(
             nodeItem.nodePointer,
@@ -233,9 +224,6 @@ export class SchemaTypeCodeGenerator extends SchemaTypeCodeGeneratorBase {
         nodeId: string,
     ): ts.TypeNode {
         const nodeItem = this.indexer.getNodeItem(nodeId);
-        if (nodeItem == null) {
-            throw new Error("nodeItem not found");
-        }
 
         const itemsEntries = selectNodeItemsEntries(
             nodeItem.nodePointer,

@@ -1,10 +1,10 @@
-import * as fs from "fs";
-import * as path from "path";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { PackageJson } from "type-fest";
 import ts from "typescript";
 import * as yargs from "yargs";
 import { SchemaManager } from "../schema/index.js";
-import { packageInfo, projectRoot } from "../utils/index.js";
+import { Namer, packageInfo, projectRoot } from "../utils/index.js";
 
 export function configureLabProgram(argv: yargs.Argv) {
     return argv.
@@ -39,6 +39,15 @@ export function configureLabProgram(argv: yargs.Argv) {
                 option("package-version", {
                     describe: "version of the package",
                     type: "string",
+                }).
+                option("generate-test", {
+                    describe: "generate test for this package (use with caution!)",
+                    type: "boolean",
+                }).
+                option("unique-name-seed", {
+                    describe: "seed to use when generating unique hashes, change if you ever have a naming collision (this should be very rare)",
+                    type: "number",
+                    default: 0,
                 }),
             argv => main(argv as MainOptions),
         );
@@ -50,27 +59,29 @@ interface MainOptions {
     packageDirectory: string
     packageName: string
     packageVersion: string
+    generateTest: boolean
+    uniqueNameSeed: number
 }
 
 async function main(options: MainOptions) {
     const schemaUrl = new URL(options.schemaUrl);
-    const defaultMetaSchemaKey = options.defaultMetaSchemaUrl;
+    const defaultMetaSchemaId = options.defaultMetaSchemaUrl;
     const packageDirectoryPath = path.resolve(options.packageDirectory);
     const { packageName, packageVersion } = options;
 
     const factory = ts.factory;
 
-    const manager = new SchemaManager();
+    const namer = new Namer(options.uniqueNameSeed);
+    const manager = new SchemaManager(namer);
 
-    await manager.loadFromUrl(
+    const rootNodeUrl = await manager.loadFromUrl(
         schemaUrl,
         schemaUrl,
         null,
-        defaultMetaSchemaKey,
+        defaultMetaSchemaId,
     );
 
-    manager.indexNodes();
-    manager.nameNodes();
+    manager.initialize();
 
     // eslint-disable-next-line security/detect-non-literal-fs-filename
     fs.mkdirSync(packageDirectoryPath, { recursive: true });
@@ -90,15 +101,54 @@ async function main(options: MainOptions) {
     // eslint-disable-next-line security/detect-non-literal-fs-filename
     fs.writeFileSync(mainFilePath, mainFileContent);
 
-    const schemaFileContent = getSchemaFileContent(factory, manager);
-    const schemaFilePath = path.join(packageDirectoryPath, "schema.ts");
+    const typesFileContent = getTypesFileContent(factory, manager);
+    const typesFilePath = path.join(packageDirectoryPath, "types.ts");
     // eslint-disable-next-line security/detect-non-literal-fs-filename
-    fs.writeFileSync(schemaFilePath, schemaFileContent);
+    fs.writeFileSync(typesFilePath, typesFileContent);
 
-    const validationSourceFileContent = path.join(projectRoot, "src", "utils", "validation.ts");
+    const validatorsFileContent = getValidatorsFileContent(factory, manager);
+    const validatorsFilePath = path.join(packageDirectoryPath, "validators.ts");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    fs.writeFileSync(validatorsFilePath, validatorsFileContent);
+
+    const validationSourceFileContent = path.join(projectRoot, "src", "includes", "validation.ts");
     const validationFilePath = path.join(packageDirectoryPath, "validation.ts");
     // eslint-disable-next-line security/detect-non-literal-fs-filename
     fs.copyFileSync(validationSourceFileContent, validationFilePath);
+
+    if (options.generateTest) {
+        const specFileContent = getSpecFileContent(factory, manager, rootNodeUrl);
+        const specFilePath = path.join(packageDirectoryPath, "schema.spec.ts");
+        // eslint-disable-next-line security/detect-non-literal-fs-filename
+        fs.writeFileSync(specFilePath, specFileContent);
+
+        // eslint-disable-next-line security/detect-non-literal-fs-filename
+        fs.mkdirSync(path.join(packageDirectoryPath, "examples", "valid"), { recursive: true });
+        {
+            let index = 0;
+            for (const example of manager.generateValidExamples(rootNodeUrl)) {
+                index++;
+                const exampleFileContent = JSON.stringify(example, undefined, 2);
+                const exampleFilePath = path.join(packageDirectoryPath, "examples", "valid", `valid-${packageName}-${index}.json`);
+                // eslint-disable-next-line security/detect-non-literal-fs-filename
+                fs.writeFileSync(exampleFilePath, exampleFileContent);
+            }
+        }
+
+        // eslint-disable-next-line security/detect-non-literal-fs-filename
+        fs.mkdirSync(path.join(packageDirectoryPath, "examples", "invalid"), { recursive: true });
+        {
+            let index = 0;
+            for (const example of manager.generateInvalidExamples(rootNodeUrl)) {
+                index++;
+                const exampleFileContent = JSON.stringify(example, undefined, 2);
+                const exampleFilePath = path.join(packageDirectoryPath, "examples", "invalid", `invalid-${packageName}-${index}.json`);
+                // eslint-disable-next-line security/detect-non-literal-fs-filename
+                fs.writeFileSync(exampleFilePath, exampleFileContent);
+            }
+        }
+    }
+
 }
 
 function getMainFileContent(
@@ -115,7 +165,14 @@ function getMainFileContent(
             undefined,
             false,
             undefined,
-            factory.createStringLiteral("./schema.js"),
+            factory.createStringLiteral("./types.js"),
+            undefined,
+        ),
+        factory.createExportDeclaration(
+            undefined,
+            false,
+            undefined,
+            factory.createStringLiteral("./validators.js"),
             undefined,
         ),
     ];
@@ -128,7 +185,8 @@ function getMainFileContent(
 
     return banner + printer.printFile(sourceFile);
 }
-function getSchemaFileContent(
+
+function getTypesFileContent(
     factory: ts.NodeFactory,
     manager: SchemaManager,
 ) {
@@ -139,16 +197,54 @@ function getSchemaFileContent(
     });
 
     const nodes = [
-        factory.createImportDeclaration(
-            undefined,
-            factory.createImportClause(
-                false,
-                undefined,
-                factory.createNamespaceImport(factory.createIdentifier("validation")),
-            ),
-            factory.createStringLiteral("./validation.js"),
-        ),
-        ...manager.generateStatements(factory),
+        ...manager.generateTypeStatements(factory),
+    ];
+
+    const sourceFile = factory.createSourceFile(
+        nodes,
+        factory.createToken(ts.SyntaxKind.EndOfFileToken),
+        ts.NodeFlags.None,
+    );
+
+    return banner + printer.printFile(sourceFile);
+}
+
+function getValidatorsFileContent(
+    factory: ts.NodeFactory,
+    manager: SchemaManager,
+) {
+    const banner = "/* eslint-disable */\n";
+
+    const printer = ts.createPrinter({
+        newLine: ts.NewLineKind.LineFeed,
+    });
+
+    const nodes = [
+        ...manager.generateValidatorStatements(factory),
+    ];
+
+    const sourceFile = factory.createSourceFile(
+        nodes,
+        factory.createToken(ts.SyntaxKind.EndOfFileToken),
+        ts.NodeFlags.None,
+    );
+
+    return banner + printer.printFile(sourceFile);
+}
+
+function getSpecFileContent(
+    factory: ts.NodeFactory,
+    manager: SchemaManager,
+    nodeUrl: URL,
+) {
+    const banner = "/* eslint-disable */\n";
+
+    const printer = ts.createPrinter({
+        newLine: ts.NewLineKind.LineFeed,
+    });
+
+    const nodes = [
+        ...manager.generateSpecStatements(factory, nodeUrl),
     ];
 
     const sourceFile = factory.createSourceFile(
@@ -196,7 +292,9 @@ function withDependencies(
     return names.reduce(
         (o, name) => Object.assign(o, {
             [name]:
+
                 packageInfo.dependencies?.[name] ??
+
                 packageInfo.devDependencies?.[name],
         }),
         {},

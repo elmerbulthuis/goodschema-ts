@@ -1,21 +1,42 @@
-import { pointerToHash } from "../../utils/index.js";
 import { SchemaIndexerBase } from "../indexer.js";
 import { SchemaManager } from "../manager.js";
+import { MetaSchemaId } from "../meta.js";
 import { SchemaLoader } from "./loader.js";
 import { metaSchema } from "./meta.js";
 import { SchemaNode } from "./node.js";
-import { selectNodeAnchor, selectNodeInstanceEntries, selectNodeRecursiveAnchor } from "./selectors.js";
+import { selectNodeAnchor, selectNodeId, selectNodeInstanceEntries, selectNodeRecursiveAnchor } from "./selectors.js";
 
-export interface SchemaIndexerNodeItem {
-    node: SchemaNode;
-    nodeBaseUrl: URL;
-    nodePointer: string;
-}
+export class SchemaIndexer extends SchemaIndexerBase<SchemaNode> {
+    protected readonly metaSchemaId = metaSchema.metaSchemaId;
 
-export class SchemaIndexer extends SchemaIndexerBase {
-    private readonly nodeMap = new Map<string, SchemaIndexerNodeItem>();
-    private readonly anchorMap = new Map<string, string>();
-    private readonly recursiveAnchorMap = new Map<string, string>();
+    public selectRootNodeEntries(): Iterable<[URL, SchemaNode]> {
+        return [...this.loader.getRootNodeItems()].
+            map(({ nodeUrl, node }) => [nodeUrl, node]);
+    }
+
+    public selectSubNodeEntries(
+        nodePointer: string,
+        node: SchemaNode,
+    ): Iterable<readonly [string, SchemaNode]> {
+        return selectNodeInstanceEntries(nodePointer, node);
+    }
+
+    protected makeNodeId(
+        node: SchemaNode,
+        nodeRootUrl: URL,
+        nodePointer: string,
+    ): string {
+        /*
+        if a node has an id set, use that!
+        */
+        const nodeId = selectNodeId(node);
+        if (nodeId != null) {
+            return nodeId;
+        }
+
+        const nodeUrl = new URL(`#${nodePointer}`, nodeRootUrl);
+        return String(nodeUrl);
+    }
 
     constructor(
         manager: SchemaManager,
@@ -24,9 +45,8 @@ export class SchemaIndexer extends SchemaIndexerBase {
         super(manager);
     }
 
-    public getNodeItem(nodeId: string) {
-        return this.nodeMap.get(nodeId);
-    }
+    private readonly anchorMap = new Map<string, string>();
+    private readonly recursiveAnchorMap = new Map<string, string>();
 
     public getAnchorNodeId(nodeId: string) {
         return this.anchorMap.get(nodeId);
@@ -37,38 +57,96 @@ export class SchemaIndexer extends SchemaIndexerBase {
         return this.recursiveAnchorMap.get(nodeKey);
     }
 
-    public indexNodes() {
-        for (const item of this.loader.getRootNodeItems()) {
-            this.indexNode(
-                item.node,
-                item.nodeUrl,
-                "",
-            );
+    public resolveReferenceNodeId(nodeId: string, nodeRef: string) {
+        const nodeItem = this.getNodeItem(nodeId);
+        if (nodeItem == null) {
+            throw new Error("nodeItem not found");
         }
+
+        const nodeRootId = String(nodeItem.nodeRootUrl);
+        const nodeRetrievalUrl = this.manager.getNodeRetrievalUrl(nodeRootId);
+
+        const nodeRefRetrievalUrl = new URL(nodeRef, nodeRetrievalUrl);
+        const hash = nodeRefRetrievalUrl.hash;
+        nodeRefRetrievalUrl.hash = "";
+        const nodeRefRetrievalId = String(nodeRefRetrievalUrl);
+        const nodeRefRootUrl = this.manager.getNodeRootUrl(nodeRefRetrievalId);
+
+        const resolvedNodeUrl = new URL(hash, nodeRefRootUrl);
+        let resolvedNodeId = String(resolvedNodeUrl);
+
+        const anchorNodeId = this.getAnchorNodeId(resolvedNodeId);
+
+        if (anchorNodeId != null) {
+            resolvedNodeId = anchorNodeId;
+        }
+
+        return resolvedNodeId;
+
     }
 
-    public indexNode(
-        node: SchemaNode,
-        nodeBaseUrl: URL,
-        nodePointer: string,
-    ) {
-        const nodeUrl = new URL(pointerToHash(nodePointer), nodeBaseUrl);
-        const nodeId = String(nodeUrl);
-
-        const item: SchemaIndexerNodeItem = {
-            node,
-            nodeBaseUrl,
-            nodePointer,
-        };
-        if (this.nodeMap.has(nodeId)) {
-            throw new Error("duplicate nodeId");
+    public resolveRecursiveReferenceNodeId(nodeId: string, nodeRecursiveRef: string) {
+        const nodeItem = this.getNodeItem(nodeId);
+        if (nodeItem == null) {
+            throw new Error("nodeItem not found");
         }
-        this.nodeMap.set(nodeId, item);
-        this.manager.registerNodeMetaSchema(nodeId, metaSchema.metaSchemaKey);
+
+        const nodeRootId = String(nodeItem.nodeRootUrl);
+        const nodeRetrievalUrl = this.manager.getNodeRetrievalUrl(nodeRootId);
+
+        const nodeRefRetrievalUrl = new URL(nodeRecursiveRef, nodeRetrievalUrl);
+        const hash = nodeRefRetrievalUrl.hash;
+        nodeRefRetrievalUrl.hash = "";
+        const nodeRefRetrievalId = String(nodeRefRetrievalUrl);
+        const nodeRefRootUrl = this.manager.getNodeRootUrl(nodeRefRetrievalId);
+
+        const resolvedNodeUrl = new URL(hash, nodeRefRootUrl);
+        let resolvedNodeId = String(resolvedNodeUrl);
+
+        let currentRootNodeUrl: URL | null = new URL("", resolvedNodeUrl);
+        while (currentRootNodeUrl != null) {
+            const currentRootNodeId = String(currentRootNodeUrl);
+            const currentRootNode = this.loader.getRootNodeItem(currentRootNodeId);
+            if (currentRootNode == null) {
+                throw new Error("rootNode not found");
+            }
+
+            const currentNodeUrl = new URL(
+                hash,
+                currentRootNode.nodeUrl,
+            );
+            const currentNodeId = String(currentNodeUrl);
+            const recursiveAnchorNodeId = this.getRecursiveAnchorNodeId(
+                currentNodeId,
+            );
+            if (recursiveAnchorNodeId != null) {
+                resolvedNodeId = recursiveAnchorNodeId;
+            }
+
+            currentRootNodeUrl = currentRootNode.referencingNodeUrl;
+        }
+
+        return resolvedNodeId;
+    }
+
+    /*
+    override the super function to load recursive anchors
+    */
+    protected indexNode(
+        node: SchemaNode,
+        nodeRootUrl: URL,
+        nodePointer: string,
+        onNodeMetaSchema: (nodeId: string, metaSchemaId: MetaSchemaId) => void,
+    ) {
+        const nodeId = this.makeNodeId(
+            node,
+            nodeRootUrl,
+            nodePointer,
+        );
 
         const nodeAnchor = selectNodeAnchor(node);
         if (nodeAnchor != null) {
-            const anchorUrl = new URL(`#${nodeAnchor}`, nodeBaseUrl);
+            const anchorUrl = new URL(`#${nodeAnchor}`, nodeRootUrl);
             const anchorId = String(anchorUrl);
             if (this.anchorMap.has(anchorId)) {
                 throw new Error("duplicate anchorId");
@@ -78,21 +156,18 @@ export class SchemaIndexer extends SchemaIndexerBase {
 
         const nodeRecursiveAnchor = selectNodeRecursiveAnchor(node);
         if (nodeRecursiveAnchor ?? false) {
-            const recursiveAnchorUrl = nodeUrl;
-            const recursiveAnchorId = String(recursiveAnchorUrl);
+            const recursiveAnchorId = nodeId;
             if (this.recursiveAnchorMap.has(recursiveAnchorId)) {
                 throw new Error("duplicate recursiveAnchorId");
             }
             this.recursiveAnchorMap.set(recursiveAnchorId, nodeId);
         }
 
-        for (const [subNodePointer, subNode] of selectNodeInstanceEntries(nodePointer, node)) {
-            this.indexNode(
-                subNode,
-                nodeBaseUrl,
-                subNodePointer,
-            );
-        }
+        super.indexNode(
+            node,
+            nodeRootUrl,
+            nodePointer,
+            onNodeMetaSchema,
+        );
     }
-
 }

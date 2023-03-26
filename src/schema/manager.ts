@@ -1,6 +1,8 @@
+import camelcase from "camelcase";
 import * as fs from "fs";
 import ts from "typescript";
-import { discoverRootNodeMetaSchemaKey, MetaSchemaKey } from "./meta.js";
+import { Namer } from "../utils/namer.js";
+import { discoverRootNodeMetaSchemaId, MetaSchemaId } from "./meta.js";
 import * as schema201909 from "./schema-2019-09/index.js";
 import * as schema202012 from "./schema-2020-12/index.js";
 import * as schemaDraft04 from "./schema-draft-04/index.js";
@@ -9,142 +11,182 @@ import * as schemaDraft07 from "./schema-draft-07/index.js";
 
 export class SchemaManager {
 
-    private readonly rootNodeMetaMap = new Map<string, MetaSchemaKey>();
-    private readonly nodeMetaMap = new Map<string, MetaSchemaKey>();
-    private readonly nameMap = new Map<string, string>();
-    private readonly retrievalSet = new Set<string>();
+    constructor(
+        public readonly namer: Namer,
+    ) {
+        //
+    }
+
+    private readonly rootNodeMetaMap = new Map<string, MetaSchemaId>();
+    private readonly nodeMetaMap = new Map<string, MetaSchemaId>();
+    private readonly retrievalRootNodeMap = new Map<string, URL>();
+    private readonly rootNodeRetrievalMap = new Map<string, URL>();
 
     private readonly loaders = {
-        [schema202012.metaSchema.metaSchemaKey]: new schema202012.SchemaLoader(this),
-        [schema201909.metaSchema.metaSchemaKey]: new schema201909.SchemaLoader(this),
-        [schemaDraft07.metaSchema.metaSchemaKey]: new schemaDraft07.SchemaLoader(this),
-        [schemaDraft06.metaSchema.metaSchemaKey]: new schemaDraft06.SchemaLoader(this),
-        [schemaDraft04.metaSchema.metaSchemaKey]: new schemaDraft04.SchemaLoader(this),
+        [schema202012.metaSchema.metaSchemaId]: new schema202012.SchemaLoader(this),
+        [schema201909.metaSchema.metaSchemaId]: new schema201909.SchemaLoader(this),
+        [schemaDraft07.metaSchema.metaSchemaId]: new schemaDraft07.SchemaLoader(this),
+        [schemaDraft06.metaSchema.metaSchemaId]: new schemaDraft06.SchemaLoader(this),
+        [schemaDraft04.metaSchema.metaSchemaId]: new schemaDraft04.SchemaLoader(this),
     };
 
     private readonly indexers = {
-        [schema202012.metaSchema.metaSchemaKey]: new schema202012.SchemaIndexer(
+        [schema202012.metaSchema.metaSchemaId]: new schema202012.SchemaIndexer(
             this,
-            this.loaders[schema202012.metaSchema.metaSchemaKey],
+            this.loaders[schema202012.metaSchema.metaSchemaId],
         ),
-        [schema201909.metaSchema.metaSchemaKey]: new schema201909.SchemaIndexer(
+        [schema201909.metaSchema.metaSchemaId]: new schema201909.SchemaIndexer(
             this,
-            this.loaders[schema201909.metaSchema.metaSchemaKey],
+            this.loaders[schema201909.metaSchema.metaSchemaId],
         ),
-        [schemaDraft07.metaSchema.metaSchemaKey]: new schemaDraft07.SchemaIndexer(
+        [schemaDraft07.metaSchema.metaSchemaId]: new schemaDraft07.SchemaIndexer(
             this,
-            this.loaders[schemaDraft07.metaSchema.metaSchemaKey],
+            this.loaders[schemaDraft07.metaSchema.metaSchemaId],
         ),
-        [schemaDraft06.metaSchema.metaSchemaKey]: new schemaDraft06.SchemaIndexer(
+        [schemaDraft06.metaSchema.metaSchemaId]: new schemaDraft06.SchemaIndexer(
             this,
-            this.loaders[schemaDraft06.metaSchema.metaSchemaKey],
+            this.loaders[schemaDraft06.metaSchema.metaSchemaId],
         ),
-        [schemaDraft04.metaSchema.metaSchemaKey]: new schemaDraft04.SchemaIndexer(
+        [schemaDraft04.metaSchema.metaSchemaId]: new schemaDraft04.SchemaIndexer(
             this,
-            this.loaders[schemaDraft04.metaSchema.metaSchemaKey],
-        ),
-    };
-
-    private readonly namers = {
-        [schema202012.metaSchema.metaSchemaKey]: new schema202012.SchemaNamer(
-            this,
-            this.indexers[schema202012.metaSchema.metaSchemaKey],
-        ),
-        [schema201909.metaSchema.metaSchemaKey]: new schema201909.SchemaNamer(
-            this,
-            this.indexers[schema201909.metaSchema.metaSchemaKey],
-        ),
-        [schemaDraft07.metaSchema.metaSchemaKey]: new schemaDraft07.SchemaNamer(
-            this,
-            this.indexers[schemaDraft07.metaSchema.metaSchemaKey],
-        ),
-        [schemaDraft06.metaSchema.metaSchemaKey]: new schemaDraft06.SchemaNamer(
-            this,
-            this.indexers[schemaDraft06.metaSchema.metaSchemaKey],
-        ),
-        [schemaDraft04.metaSchema.metaSchemaKey]: new schemaDraft04.SchemaNamer(
-            this,
-            this.indexers[schemaDraft04.metaSchema.metaSchemaKey],
+            this.loaders[schemaDraft04.metaSchema.metaSchemaId],
         ),
     };
 
-    private readonly codeGenerators = {
-        [schema202012.metaSchema.metaSchemaKey]: new schema202012.SchemaCodeGenerator(
+    private readonly typeCodeGenerators = {
+        [schema202012.metaSchema.metaSchemaId]: new schema202012.SchemaTypeCodeGenerator(
             this,
-            this.loaders[schema202012.metaSchema.metaSchemaKey],
-            this.indexers[schema202012.metaSchema.metaSchemaKey],
+            this.indexers[schema202012.metaSchema.metaSchemaId],
         ),
-        [schema201909.metaSchema.metaSchemaKey]: new schema201909.SchemaCodeGenerator(
+        [schema201909.metaSchema.metaSchemaId]: new schema201909.SchemaTypeCodeGenerator(
             this,
-            this.loaders[schema201909.metaSchema.metaSchemaKey],
-            this.indexers[schema201909.metaSchema.metaSchemaKey],
+            this.indexers[schema201909.metaSchema.metaSchemaId],
         ),
-        [schemaDraft07.metaSchema.metaSchemaKey]: new schemaDraft07.SchemaCodeGenerator(
+        [schemaDraft07.metaSchema.metaSchemaId]: new schemaDraft07.SchemaTypeCodeGenerator(
             this,
-            this.loaders[schemaDraft07.metaSchema.metaSchemaKey],
-            this.indexers[schemaDraft07.metaSchema.metaSchemaKey],
+            this.indexers[schemaDraft07.metaSchema.metaSchemaId],
         ),
-        [schemaDraft06.metaSchema.metaSchemaKey]: new schemaDraft06.SchemaCodeGenerator(
+        [schemaDraft06.metaSchema.metaSchemaId]: new schemaDraft06.SchemaTypeCodeGenerator(
             this,
-            this.loaders[schemaDraft06.metaSchema.metaSchemaKey],
-            this.indexers[schemaDraft06.metaSchema.metaSchemaKey],
+            this.indexers[schemaDraft06.metaSchema.metaSchemaId],
         ),
-        [schemaDraft04.metaSchema.metaSchemaKey]: new schemaDraft04.SchemaCodeGenerator(
+        [schemaDraft04.metaSchema.metaSchemaId]: new schemaDraft04.SchemaTypeCodeGenerator(
             this,
-            this.loaders[schemaDraft04.metaSchema.metaSchemaKey],
-            this.indexers[schemaDraft04.metaSchema.metaSchemaKey],
+            this.indexers[schemaDraft04.metaSchema.metaSchemaId],
         ),
     };
 
-    public registerRootNodeMetaSchema(
-        nodeId: string,
-        schemaMetaKey: MetaSchemaKey,
-    ) {
-        if (this.rootNodeMetaMap.has(nodeId)) {
-            throw new Error("duplicate root nodeId");
-        }
-        this.rootNodeMetaMap.set(nodeId, schemaMetaKey);
-    }
+    private readonly validatorCodeGenerators = {
+        [schema202012.metaSchema.metaSchemaId]: new schema202012.SchemaValidatorCodeGenerator(
+            this,
+            this.indexers[schema202012.metaSchema.metaSchemaId],
+        ),
+        [schema201909.metaSchema.metaSchemaId]: new schema201909.SchemaValidatorCodeGenerator(
+            this,
+            this.indexers[schema201909.metaSchema.metaSchemaId],
+        ),
+        [schemaDraft07.metaSchema.metaSchemaId]: new schemaDraft07.SchemaValidatorCodeGenerator(
+            this,
+            this.indexers[schemaDraft07.metaSchema.metaSchemaId],
+        ),
+        [schemaDraft06.metaSchema.metaSchemaId]: new schemaDraft06.SchemaValidatorCodeGenerator(
+            this,
+            this.indexers[schemaDraft06.metaSchema.metaSchemaId],
+        ),
+        [schemaDraft04.metaSchema.metaSchemaId]: new schemaDraft04.SchemaValidatorCodeGenerator(
+            this,
+            this.indexers[schemaDraft04.metaSchema.metaSchemaId],
+        ),
+    };
 
-    public registerNodeMetaSchema(
-        nodeId: string,
-        schemaMetaKey: MetaSchemaKey,
-    ) {
-        if (this.nodeMetaMap.has(nodeId)) {
-            throw new Error("duplicate nodeId");
-        }
-        this.nodeMetaMap.set(nodeId, schemaMetaKey);
-    }
+    private readonly specCodeGenerators = {
+        [schema202012.metaSchema.metaSchemaId]: new schema202012.SchemaSpecCodeGenerator(
+            this,
+        ),
+        [schema201909.metaSchema.metaSchemaId]: new schema201909.SchemaSpecCodeGenerator(
+            this,
+        ),
+        [schemaDraft07.metaSchema.metaSchemaId]: new schemaDraft07.SchemaSpecCodeGenerator(
+            this,
+        ),
+        [schemaDraft06.metaSchema.metaSchemaId]: new schemaDraft06.SchemaSpecCodeGenerator(
+            this,
+        ),
+        [schemaDraft04.metaSchema.metaSchemaId]: new schemaDraft04.SchemaSpecCodeGenerator(
+            this,
+        ),
+    };
+
+    private readonly exampleGenerators = {
+        [schema202012.metaSchema.metaSchemaId]: new schema202012.SchemaExampleGenerator(
+            this,
+            this.indexers[schema202012.metaSchema.metaSchemaId],
+        ),
+        [schema201909.metaSchema.metaSchemaId]: new schema201909.SchemaExampleGenerator(
+            this,
+            this.indexers[schema201909.metaSchema.metaSchemaId],
+        ),
+        [schemaDraft07.metaSchema.metaSchemaId]: new schemaDraft07.SchemaExampleGenerator(
+            this,
+            this.indexers[schemaDraft07.metaSchema.metaSchemaId],
+        ),
+        [schemaDraft06.metaSchema.metaSchemaId]: new schemaDraft06.SchemaExampleGenerator(
+            this,
+            this.indexers[schemaDraft06.metaSchema.metaSchemaId],
+        ),
+        [schemaDraft04.metaSchema.metaSchemaId]: new schemaDraft04.SchemaExampleGenerator(
+            this,
+            this.indexers[schemaDraft04.metaSchema.metaSchemaId],
+        ),
+    };
 
     public async loadFromUrl(
         nodeUrl: URL,
         retrievalUrl: URL,
         referencingUrl: URL | null,
-        defaultMetaSchemaKey: MetaSchemaKey,
+        defaultMetaSchemaId: MetaSchemaId,
     ) {
-        const retrievalId = String(retrievalUrl);
-        if (this.retrievalSet.has(retrievalId)) {
-            return;
+        if (this.initialized) {
+            throw new Error("cannot load after initialized");
         }
-        this.retrievalSet.add(retrievalId);
+
+        const retrievalId = String(retrievalUrl);
+
+        let rootNodeUrl = this.retrievalRootNodeMap.get(retrievalId);
+        if (rootNodeUrl != null) {
+            return rootNodeUrl;
+        }
 
         const schemaRootNode = await this.loadSchemaRootNodeFromUrl(
             retrievalUrl,
         );
 
-        await this.loadFromRootNode(
+        rootNodeUrl = await this.loadFromRootNode(
             schemaRootNode,
             nodeUrl,
             retrievalUrl,
             referencingUrl,
-            defaultMetaSchemaKey,
+            defaultMetaSchemaId,
         );
+        if (rootNodeUrl == null) {
+            throw new Error("rootNode not found");
+        }
 
+        const rootNodeId = String(rootNodeUrl);
+
+        this.retrievalRootNodeMap.set(retrievalId, rootNodeUrl);
+        this.rootNodeRetrievalMap.set(rootNodeId, retrievalUrl);
+
+        return rootNodeUrl;
     }
 
     private async loadSchemaRootNodeFromUrl(
         url: URL,
     ) {
+        if (this.initialized) {
+            throw new Error("cannot load after initialized");
+        }
+
         switch (url.protocol) {
             case "http:":
             case "http2:": {
@@ -170,53 +212,319 @@ export class SchemaManager {
         nodeUrl: URL,
         retrievalUrl: URL,
         referencingNodeUrl: URL | null,
-        defaultMetaSchemaKey: MetaSchemaKey,
+        defaultMetaSchemaId: MetaSchemaId,
     ) {
-        const rootNodeSchemaMetaKey = discoverRootNodeMetaSchemaKey(node) ??
-            defaultMetaSchemaKey;
+        if (this.initialized) {
+            throw new Error("cannot load after initialized");
+        }
 
-        // eslint-disable-next-line security/detect-object-injection
+        const rootNodeSchemaMetaKey = discoverRootNodeMetaSchemaId(node) ??
+            defaultMetaSchemaId;
+
         const loader = this.loaders[rootNodeSchemaMetaKey];
-        await loader.loadFromRootNode(
+        return await loader.loadFromRootNode(
             node,
             nodeUrl,
             retrievalUrl,
             referencingNodeUrl,
-        );
-    }
-
-    public async indexNodes(
-    ) {
-        for (const indexer of Object.values(this.indexers)) {
-            indexer.indexNodes();
-        }
-    }
-
-    public nameNodes() {
-        for (const [rootNodeId, metaSchemaKey] of this.rootNodeMetaMap) {
-            const namer = this.namers[metaSchemaKey as keyof typeof this.namers];
-            for (const [nodeId, name] of namer.getTypeNames(rootNodeId)) {
-                if (this.nameMap.has(nodeId)) {
-                    throw new Error("duplicate nodeId");
+            (nodeId, metaSchemaId) => {
+                if (this.rootNodeMetaMap.has(nodeId)) {
+                    throw new Error("duplicate root nodeId");
                 }
-                this.nameMap.set(nodeId, name);
+                this.rootNodeMetaMap.set(nodeId, metaSchemaId);
+
+            },
+        );
+
+    }
+
+    private initialized = false;
+    public async initialize() {
+        if (this.initialized) {
+            throw new Error("already initialized");
+        }
+        this.initialized = true;
+
+        for (const indexer of Object.values(this.indexers)) {
+            indexer.indexNodes(
+                (nodeId, metaSchemaId) => {
+                    if (this.nodeMetaMap.has(nodeId)) {
+                        throw new Error("duplicate nodeId");
+                    }
+                    this.nodeMetaMap.set(nodeId, metaSchemaId);
+                },
+            );
+        }
+
+        for (const [rootNodeId, metaSchemaId] of this.rootNodeMetaMap) {
+            for (const [nodeId, name] of this.getTypeNames(metaSchemaId, rootNodeId)) {
+                this.namer.registerName(nodeId, name);
             }
         }
     }
 
     public getName(nodeId: string) {
-        return this.nameMap.get(nodeId);
+        if (!this.initialized) {
+            throw new Error("not yet initialized");
+        }
+
+        const name = this.namer.getName(nodeId);
+
+        return name.join("_");
     }
 
-    public *generateStatements(
+    public getNodeRetrievalUrl(nodeRootId: string) {
+        if (!this.initialized) {
+            throw new Error("not yet initialized");
+        }
+
+        return this.rootNodeRetrievalMap.get(nodeRootId);
+    }
+
+    public getNodeRootUrl(nodeRetrievalId: string) {
+        if (!this.initialized) {
+            throw new Error("not yet initialized");
+        }
+
+        return this.retrievalRootNodeMap.get(nodeRetrievalId);
+    }
+
+    public *generateTypeStatements(
         factory: ts.NodeFactory,
     ) {
-        for (const [nodeId, metaSchemaKey] of this.nodeMetaMap) {
-            const codeGenerator =
-                this.codeGenerators[metaSchemaKey as keyof typeof this.codeGenerators];
+        for (const [nodeId, metaSchemaId] of this.nodeMetaMap) {
+
+            const codeGenerator = this.typeCodeGenerators[metaSchemaId];
             yield* codeGenerator.generateStatements(
                 factory,
                 nodeId,
+            );
+        }
+
+    }
+
+    public *generateValidatorStatements(
+        factory: ts.NodeFactory,
+    ) {
+        if (!this.initialized) {
+            throw new Error("not yet initialized");
+        }
+
+        yield factory.createImportDeclaration(
+            undefined,
+            factory.createImportClause(
+                false,
+                undefined,
+                factory.createNamespaceImport(factory.createIdentifier("validation")),
+            ),
+            factory.createStringLiteral("./validation.js"),
+        );
+
+        yield factory.createImportDeclaration(
+            undefined,
+            factory.createImportClause(
+                false,
+                undefined,
+                factory.createNamespaceImport(factory.createIdentifier("types")),
+            ),
+            factory.createStringLiteral("./types.js"),
+        );
+
+        for (const [nodeId, metaSchemaId] of this.nodeMetaMap) {
+
+            const codeGenerator = this.validatorCodeGenerators[metaSchemaId];
+            yield* codeGenerator.generateStatements(
+                factory,
+                nodeId,
+            );
+        }
+    }
+
+    public *generateSpecStatements(
+        factory: ts.NodeFactory,
+        nodeUrl: URL,
+    ) {
+        if (!this.initialized) {
+            throw new Error("not yet initialized");
+        }
+
+        const nodeId = String(nodeUrl);
+
+        yield factory.createImportDeclaration(
+            undefined,
+            factory.createImportClause(
+                false,
+                undefined,
+                factory.createNamespaceImport(factory.createIdentifier("types")),
+            ),
+            factory.createStringLiteral("./types.js"),
+        );
+        yield factory.createImportDeclaration(
+            undefined,
+            factory.createImportClause(
+                false,
+                undefined,
+                factory.createNamespaceImport(factory.createIdentifier("validators")),
+            ),
+            factory.createStringLiteral("./validators.js"),
+        );
+
+        yield factory.createImportDeclaration(
+            undefined,
+            factory.createImportClause(
+                false,
+                factory.createIdentifier("assert"),
+                undefined,
+            ),
+            factory.createStringLiteral("node:assert"),
+            undefined,
+        );
+        yield factory.createImportDeclaration(
+            undefined,
+            factory.createImportClause(
+                false,
+                factory.createIdentifier("fs"),
+                undefined,
+            ),
+            factory.createStringLiteral("node:fs"),
+            undefined,
+        );
+        yield factory.createImportDeclaration(
+            undefined,
+            factory.createImportClause(
+                false,
+                undefined,
+                factory.createNamespaceImport(factory.createIdentifier("path")),
+            ),
+            factory.createStringLiteral("node:path"),
+            undefined,
+        );
+        yield factory.createImportDeclaration(
+            undefined,
+            factory.createImportClause(
+                false,
+                factory.createIdentifier("test"),
+                undefined,
+            ),
+            factory.createStringLiteral("node:test"),
+            undefined,
+        );
+
+        {
+            const metaSchemaId = this.nodeMetaMap.get(nodeId);
+            if (metaSchemaId == null) {
+                throw new Error("node not found");
+            }
+
+            const codeGenerator = this.specCodeGenerators[metaSchemaId];
+            yield* codeGenerator.generateStatements(
+                factory,
+                nodeId,
+            );
+        }
+
+    }
+
+    public generateExamples(nodeId: string) {
+        if (!this.initialized) {
+            throw new Error("not yet initialized");
+        }
+
+        const metaSchemaId = this.nodeMetaMap.get(nodeId);
+        if (metaSchemaId == null) {
+            throw new Error("node not found");
+        }
+
+        const exampleGenerator = this.exampleGenerators[metaSchemaId];
+        return exampleGenerator.generateFromNode(nodeId);
+    }
+
+    public *generateValidExamples(nodeUrl: URL) {
+        if (!this.initialized) {
+            throw new Error("not yet initialized");
+        }
+
+        const nodeId = String(nodeUrl);
+        for (const [error, example] of this.generateExamples(nodeId)) {
+            if (error > 0) {
+                continue;
+            }
+            yield example;
+        }
+    }
+
+    public *generateInvalidExamples(nodeUrl: URL) {
+        if (!this.initialized) {
+            throw new Error("not yet initialized");
+        }
+
+        const nodeId = String(nodeUrl);
+        for (const [error, example] of this.generateExamples(nodeId)) {
+            if (error !== 1) {
+                continue;
+            }
+            yield example;
+        }
+    }
+
+    private * getTypeNames(
+        metaSchemaId: MetaSchemaId,
+        nodeId: string,
+        baseName = "",
+    ): Iterable<readonly [string, string]> {
+        const reReplace = /[^A-Za-z0-9]/gu;
+        const reFilter = /^[A-Za-z]/u;
+
+        const indexer = this.indexers[metaSchemaId];
+
+        const item = indexer.getNodeItem(nodeId);
+        if (item == null) {
+            throw new Error("item nog found");
+        }
+
+        const {
+            node,
+            nodeRootUrl,
+            nodePointer,
+        } = item;
+
+        const pathParts = nodeRootUrl.pathname.
+            split("/").
+            map(decodeURI).
+            map(value => value.toLowerCase()).
+            map(value => value.replace(reReplace, "")).
+            filter(value => reFilter.test(value));
+        const pointerParts = nodePointer.
+            split("/").
+            map(decodeURI).
+            map(value => value.toLowerCase()).
+            map(value => value.replace(reReplace, ""));
+
+        if (nodePointer === "") {
+            baseName = pathParts[pathParts.length - 1] ?? "Schema";
+        }
+
+        const nameParts = [
+            baseName,
+            pointerParts[pointerParts.length - 1],
+        ].
+            filter(value => value != null).
+            filter(value => value != "");
+
+        const name = camelcase(nameParts, { pascalCase: true });
+
+        yield [nodeId, name] as const;
+
+        for (
+            const [subNodePointer] of
+            indexer.selectSubNodeEntries(nodePointer, node)
+        ) {
+            const subNodeUrl = new URL(`#${subNodePointer}`, nodeRootUrl);
+            const subNodeId = String(subNodeUrl);
+            yield* this.getTypeNames(
+                metaSchemaId,
+                subNodeId,
+                name,
             );
         }
 

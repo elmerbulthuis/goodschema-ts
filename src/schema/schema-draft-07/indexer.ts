@@ -3,64 +3,45 @@ import { SchemaManager } from "../manager.js";
 import { SchemaLoader } from "./loader.js";
 import { metaSchema } from "./meta.js";
 import { SchemaNode } from "./node.js";
-import { selectNodeInstanceEntries } from "./selectors.js";
+import { selectNodeId, selectNodeInstanceEntries } from "./selectors.js";
 
-export interface SchemaIndexerNodeItem {
-    node: SchemaNode;
-    nodeBaseUrl: URL;
-    nodePointer: string;
-}
+export class SchemaIndexer extends SchemaIndexerBase<SchemaNode> {
+    protected readonly metaSchemaId = metaSchema.metaSchemaId;
 
-export class SchemaIndexer extends SchemaIndexerBase {
-    private readonly nodeMap = new Map<string, SchemaIndexerNodeItem>();
+    public selectRootNodeEntries(): Iterable<[URL, SchemaNode]> {
+        return [...this.loader.getRootNodeItems()].
+            map(({ nodeUrl, node }) => [nodeUrl, node]);
+    }
+
+    public selectSubNodeEntries(
+        nodePointer: string,
+        node: SchemaNode,
+    ): Iterable<readonly [string, SchemaNode]> {
+        return selectNodeInstanceEntries(nodePointer, node);
+    }
+
+    protected makeNodeId(
+        node: SchemaNode,
+        nodeRootUrl: URL,
+        nodePointer: string,
+    ): string {
+        /*
+        if a node has an id set, use that!
+        */
+        const nodeId = selectNodeId(node);
+        if (nodeId != null) {
+            return nodeId;
+        }
+
+        const nodeUrl = new URL(`#${nodePointer}`, nodeRootUrl);
+        return String(nodeUrl);
+    }
 
     constructor(
         manager: SchemaManager,
         private readonly loader: SchemaLoader,
     ) {
         super(manager);
-    }
-
-    public getNodeItem(nodeId: string) {
-        return this.nodeMap.get(nodeId);
-    }
-
-    public indexNodes() {
-        for (const item of this.loader.getRootNodeItems()) {
-            this.indexNode(
-                item.node,
-                item.nodeUrl,
-                "",
-            );
-        }
-    }
-
-    public indexNode(
-        node: SchemaNode,
-        nodeBaseUrl: URL,
-        nodePointer: string,
-    ) {
-        const nodeUrl = new URL(`#${nodePointer}`, nodeBaseUrl);
-        const nodeId = String(nodeUrl);
-
-        const item: SchemaIndexerNodeItem = {
-            node,
-            nodeBaseUrl,
-            nodePointer,
-        };
-        if (this.nodeMap.has(nodeId)) {
-            throw new Error("duplicate nodeId");
-        }
-        this.nodeMap.set(nodeId, item);
-        this.manager.registerNodeMetaSchema(nodeId, metaSchema.metaSchemaKey);
-
-        for (const [subNodePointer, subNode] of selectNodeInstanceEntries(nodePointer, node)) {
-            this.indexNode(
-                subNode,
-                nodeBaseUrl,
-                subNodePointer,
-            );
-        }
     }
 
 }

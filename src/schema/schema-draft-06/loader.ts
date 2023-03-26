@@ -3,60 +3,24 @@ import { metaSchema } from "./meta.js";
 import { SchemaNode } from "./node.js";
 import { selectNodeId, selectNodeInstanceEntries, selectNodeRef } from "./selectors.js";
 
-export interface SchemaLoaderRootNodeItem {
-    node: SchemaNode;
-    nodeUrl: URL;
-    referencingNodeUrl: URL | null;
-}
+export class SchemaLoader extends SchemaLoaderBase<SchemaNode> {
+    protected readonly metaSchemaId = metaSchema.metaSchemaId;
 
-export class SchemaLoader extends SchemaLoaderBase {
-    private readonly rootNodeMap = new Map<string, SchemaLoaderRootNodeItem>();
-
-    public getRootNodeItem(nodeId: string) {
-        return this.rootNodeMap.get(nodeId);
+    protected selectNodeId(node: SchemaNode) {
+        return selectNodeId(node);
     }
 
-    public getRootNodeItems() {
-        return this.rootNodeMap.values();
+    protected selectSubNodeEntries(
+        nodePointer: string,
+        node: SchemaNode,
+    ): Iterable<readonly [string, SchemaNode]> {
+        return selectNodeInstanceEntries(nodePointer, node);
     }
 
-    public async loadFromRootNode(
-        node: unknown,
-        nodeUrl: URL,
-        retrievalUrl: URL,
-        referencingNodeUrl: URL | null,
-    ): Promise<void> {
-        let nodeId = String(nodeUrl);
-
-        const maybeNodeId = selectNodeId(node);
-        if (maybeNodeId != null) {
-            nodeId = maybeNodeId;
-            nodeUrl = new URL(nodeId);
-        }
-
-        const item: SchemaLoaderRootNodeItem = {
-            node,
-            nodeUrl,
-            referencingNodeUrl,
-        };
-
-        this.rootNodeMap.set(nodeId, item);
-
-        this.manager.registerRootNodeMetaSchema(nodeId, metaSchema.metaSchemaKey);
-
-        await this.loadFromSubNodes(
-            node,
-            nodeUrl,
-            retrievalUrl,
-            "",
-        );
-    }
-
-    private async loadFromSubNodes(
+    protected async loadFromUrl(
         node: SchemaNode,
         nodeUrl: URL,
         retrievalUrl: URL,
-        nodePointer: string,
     ) {
         const nodeRef = selectNodeRef(node);
 
@@ -68,18 +32,9 @@ export class SchemaLoader extends SchemaLoaderBase {
                 nodeRefUrl,
                 retrievalRefUrl,
                 nodeUrl,
-                metaSchema.metaSchemaKey,
+                this.metaSchemaId,
             );
         }
 
-        for (const [subNodePointer, subNode] of selectNodeInstanceEntries(nodePointer, node)) {
-            await this.loadFromSubNodes(
-                subNode,
-                nodeUrl,
-                retrievalUrl,
-                subNodePointer,
-            );
-        }
     }
-
 }

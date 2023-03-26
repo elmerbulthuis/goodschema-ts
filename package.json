@@ -16,7 +16,7 @@
     "clean": "rm -rf out",
     "test": "npm run spec-all",
     "lint": "eslint \"src/**/*.ts\"",
-    "spec-all": "node ./out/**/*.spec.js",
+    "spec-all": "node --test ./out/**/*.spec.js",
     "coverage": "c8 --reporter lcov --reporter cobertura npm test",
     "docs": "typedoc"
   },
@@ -36,7 +36,7 @@
   ],
   "homepage": "https://ts.goodschema.org",
   "devDependencies": {
-    "@types/node": "^18.15.7",
+    "@types/node": "^18.15.10",
     "@typescript-eslint/eslint-plugin": "^5.56.0",
     "c8": "^7.13.0",
     "eslint": "^8.36.0",
@@ -45,11 +45,11 @@
     "typedoc": "^0.23.28"
   },
   "dependencies": {
-    "@types/yargs": "^17.0.22",
+    "@types/yargs": "^17.0.23",
     "camelcase": "^7.0.1",
     "crc": "^4.3.2",
     "tslib": "^2.5.0",
-    "type-fest": "^3.6.1",
+    "type-fest": "^3.7.1",
     "typescript": "^4.9.5",
     "yargs": "^17.7.1"
   }

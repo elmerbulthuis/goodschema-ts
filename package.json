@@ -1,5 +1,5 @@
 {
-  "name": "goodschema",
+  "name": "jns42-generator",
   "version": "0.0.0",
   "description": "a good router",
   "type": "module",
@@ -22,19 +22,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:goodschema/goodschema-ts.git"
+    "url": "git@github.com:jns42-generator/jns42-generator-ts.git"
   },
   "author": "LuvDaSun Software B.V.",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/goodschema/goodschema-ts/issues"
+    "url": "https://github.com/jns42-generator/jns42-generator-ts/issues"
   },
   "keywords": [
     "good",
     "json",
     "schema"
   ],
-  "homepage": "https://ts.goodschema.org",
+  "homepage": "https://ts.jns42-generator.org",
   "devDependencies": {
     "@types/node": "^18.15.10",
     "@typescript-eslint/eslint-plugin": "^5.56.0",

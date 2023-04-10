@@ -1,7 +1,7 @@
 {
   "name": "jns42-generator",
   "version": "0.0.0",
-  "description": "a good router",
+  "description": "generate interfaces and validators from a json schema",
   "type": "module",
   "bin": "out/program.js",
   "main": "out/main.js",
@@ -22,19 +22,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:jns42-generator/jns42-generator-ts.git"
+    "url": "git@github.com:JsonSchema42/jns42-generator-ts"
   },
   "author": "LuvDaSun Software B.V.",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/jns42-generator/jns42-generator-ts/issues"
+    "url": "https://github.com/JsonSchema42/jns42-generator-ts/issues"
   },
   "keywords": [
-    "good",
     "json",
-    "schema"
+    "schema",
+    "generator"
   ],
-  "homepage": "https://ts.jns42-generator.org",
+  "homepage": "https://www.JsonSchema42.org",
   "devDependencies": {
     "@types/node": "^18.15.10",
     "@typescript-eslint/eslint-plugin": "^5.56.0",

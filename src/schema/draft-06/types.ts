@@ -1,13 +1,13 @@
 /* eslint-disable */
-/**
-Core schema meta-schema
-*/
+/* spellchecker: disable */
 export type Schema = (({
-    id?: SchemaId;
+    $id?: SchemaId;
     $schema?: SchemaSchema;
+    $ref?: SchemaRef;
     title?: SchemaTitle;
     description?: SchemaDescription;
     default?: SchemaDefault;
+    examples?: SchemaExamples;
     multipleOf?: SchemaMultipleof;
     maximum?: SchemaMaximum;
     exclusiveMaximum?: SchemaExclusivemaximum;
@@ -21,6 +21,7 @@ export type Schema = (({
     maxItems?: SchemaMaxitems;
     minItems?: SchemaMinitems;
     uniqueItems?: SchemaUniqueitems;
+    contains?: SchemaContains;
     maxProperties?: SchemaMaxproperties;
     minProperties?: SchemaMinproperties;
     required?: SchemaRequired;
@@ -29,6 +30,8 @@ export type Schema = (({
     properties?: SchemaProperties;
     patternProperties?: SchemaPatternproperties;
     dependencies?: SchemaDependencies;
+    propertyNames?: SchemaPropertynames;
+    const?: SchemaConst;
     enum?: SchemaEnum;
     type?: SchemaType;
     format?: SchemaFormat;
@@ -36,44 +39,44 @@ export type Schema = (({
     anyOf?: SchemaAnyof;
     oneOf?: SchemaOneof;
     not?: SchemaNot;
-}));
+} | boolean));
 export type SchemaSchemaarray = ((Array<SchemaSchemaarrayItems>));
 export type SchemaSchemaarrayItems = (Schema);
-export type SchemaPositiveinteger = ((number));
-export type SchemaPositiveintegerdefault0 = ((SchemaPositiveintegerdefault00 & SchemaPositiveintegerdefault01));
-export type SchemaPositiveintegerdefault00 = (SchemaPositiveinteger);
-export type SchemaPositiveintegerdefault01 = unknown;
+export type SchemaNonnegativeinteger = ((number));
+export type SchemaNonnegativeintegerdefault0 = ((SchemaNonnegativeintegerdefault00 & SchemaNonnegativeintegerdefault01));
+export type SchemaNonnegativeintegerdefault00 = (SchemaNonnegativeinteger);
+export type SchemaNonnegativeintegerdefault01 = unknown;
 export type SchemaSimpletypes = (("array" | "boolean" | "integer" | "null" | "number" | "object" | "string"));
 export type SchemaStringarray = ((Array<SchemaStringarrayItems>));
 export type SchemaStringarrayItems = ((string));
 export type SchemaId = ((string));
 export type SchemaSchema = ((string));
+export type SchemaRef = ((string));
 export type SchemaTitle = ((string));
 export type SchemaDescription = ((string));
 export type SchemaDefault = unknown;
+export type SchemaExamples = ((Array<SchemaExamplesItems>));
+export type SchemaExamplesItems = unknown;
 export type SchemaMultipleof = ((number));
 export type SchemaMaximum = ((number));
-export type SchemaExclusivemaximum = ((boolean));
+export type SchemaExclusivemaximum = ((number));
 export type SchemaMinimum = ((number));
-export type SchemaExclusiveminimum = ((boolean));
-export type SchemaMaxlength = (SchemaPositiveinteger);
-export type SchemaMinlength = (SchemaPositiveintegerdefault0);
+export type SchemaExclusiveminimum = ((number));
+export type SchemaMaxlength = (SchemaNonnegativeinteger);
+export type SchemaMinlength = (SchemaNonnegativeintegerdefault0);
 export type SchemaPattern = ((string));
-export type SchemaAdditionalitems = ((SchemaAdditionalitems0 | SchemaAdditionalitems1));
-export type SchemaAdditionalitems0 = ((boolean));
-export type SchemaAdditionalitems1 = (Schema);
+export type SchemaAdditionalitems = (Schema);
 export type SchemaItems = ((SchemaItems0 | SchemaItems1));
 export type SchemaItems0 = (Schema);
 export type SchemaItems1 = (SchemaSchemaarray);
-export type SchemaMaxitems = (SchemaPositiveinteger);
-export type SchemaMinitems = (SchemaPositiveintegerdefault0);
+export type SchemaMaxitems = (SchemaNonnegativeinteger);
+export type SchemaMinitems = (SchemaNonnegativeintegerdefault0);
 export type SchemaUniqueitems = ((boolean));
-export type SchemaMaxproperties = (SchemaPositiveinteger);
-export type SchemaMinproperties = (SchemaPositiveintegerdefault0);
+export type SchemaContains = (Schema);
+export type SchemaMaxproperties = (SchemaNonnegativeinteger);
+export type SchemaMinproperties = (SchemaNonnegativeintegerdefault0);
 export type SchemaRequired = (SchemaStringarray);
-export type SchemaAdditionalproperties = ((SchemaAdditionalproperties0 | SchemaAdditionalproperties1));
-export type SchemaAdditionalproperties0 = ((boolean));
-export type SchemaAdditionalproperties1 = (Schema);
+export type SchemaAdditionalproperties = (Schema);
 export type SchemaDefinitions = ((Record<string, SchemaDefinitionsAdditionalproperties>));
 export type SchemaDefinitionsAdditionalproperties = (Schema);
 export type SchemaProperties = ((Record<string, SchemaPropertiesAdditionalproperties>));
@@ -84,6 +87,8 @@ export type SchemaDependencies = ((Record<string, SchemaDependenciesAdditionalpr
 export type SchemaDependenciesAdditionalproperties = ((SchemaDependenciesAdditionalproperties0 | SchemaDependenciesAdditionalproperties1));
 export type SchemaDependenciesAdditionalproperties0 = (Schema);
 export type SchemaDependenciesAdditionalproperties1 = (SchemaStringarray);
+export type SchemaPropertynames = (Schema);
+export type SchemaConst = unknown;
 export type SchemaEnum = ((Array<unknown>));
 export type SchemaType = ((SchemaType0 | SchemaType1));
 export type SchemaType0 = (SchemaSimpletypes);

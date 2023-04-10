@@ -2,14 +2,14 @@ import camelcase from "camelcase";
 import * as fs from "fs";
 import ts from "typescript";
 import { Namer } from "../utils/namer.js";
+import * as schemaDraft04 from "./draft-04/index.js";
+import * as schemaDraft06 from "./draft-06/index.js";
+import * as schemaDraft07 from "./draft-07/index.js";
+import * as schema201909 from "./draft-2019-09/index.js";
+import * as schema202012 from "./draft-2020-12/index.js";
 import { SchemaIndexerBase } from "./indexer.js";
 import { SchemaLoaderBase } from "./loader.js";
 import { discoverRootNodeMetaSchemaId, MetaSchemaId } from "./meta.js";
-import * as schema201909 from "./schema-2019-09/index.js";
-import * as schema202012 from "./schema-2020-12/index.js";
-import * as schemaDraft04 from "./schema-draft-04/index.js";
-import * as schemaDraft06 from "./schema-draft-06/index.js";
-import * as schemaDraft07 from "./schema-draft-07/index.js";
 
 export class SchemaManager {
 
@@ -142,70 +142,6 @@ export class SchemaManager {
         ),
     };
 
-    public async loadFromUrl(
-        nodeUrl: URL,
-        retrievalUrl: URL,
-        referencingUrl: URL | null,
-        defaultMetaSchemaId: MetaSchemaId,
-    ) {
-        if (this.initialized) {
-            throw new Error("cannot load after initialized");
-        }
-
-        const retrievalId = String(retrievalUrl);
-
-        let rootNodeUrl = this.retrievalRootNodeMap.get(retrievalId);
-        if (rootNodeUrl != null) {
-            return rootNodeUrl;
-        }
-
-        const schemaRootNode = await this.loadSchemaRootNodeFromUrl(
-            retrievalUrl,
-        );
-
-        rootNodeUrl = await this.loadFromRootNode(
-            schemaRootNode,
-            nodeUrl,
-            retrievalUrl,
-            referencingUrl,
-            defaultMetaSchemaId,
-        );
-
-        const rootNodeId = String(rootNodeUrl);
-
-        this.retrievalRootNodeMap.set(retrievalId, rootNodeUrl);
-        this.rootNodeRetrievalMap.set(rootNodeId, retrievalUrl);
-
-        return rootNodeUrl;
-    }
-
-    private async loadSchemaRootNodeFromUrl(
-        url: URL,
-    ) {
-        if (this.initialized) {
-            throw new Error("cannot load after initialized");
-        }
-
-        switch (url.protocol) {
-            case "http:":
-            case "http2:": {
-                const result = await fetch(url);
-                const schemaRootNode = await result.json() as unknown;
-
-                return schemaRootNode;
-            }
-
-            case "file:": {
-                // eslint-disable-next-line security/detect-non-literal-fs-filename
-                const content = fs.readFileSync(url.pathname, "utf-8");
-
-                const schemaRootNode = JSON.parse(content) as unknown;
-
-                return schemaRootNode;
-            }
-        }
-    }
-
     public async loadFromRootNode(
         node: unknown,
         nodeUrl: URL,
@@ -241,6 +177,70 @@ export class SchemaManager {
             },
         );
 
+    }
+
+    public async loadFromUrl(
+        nodeUrl: URL,
+        retrievalUrl: URL,
+        referencingUrl: URL | null,
+        defaultMetaSchemaId: MetaSchemaId,
+    ) {
+        if (this.initialized) {
+            throw new Error("cannot load after initialized");
+        }
+
+        const retrievalId = String(retrievalUrl);
+
+        let rootNodeUrl = this.retrievalRootNodeMap.get(retrievalId);
+        if (rootNodeUrl != null) {
+            return rootNodeUrl;
+        }
+
+        const schemaRootNode = await this.fetchSchemaRootNodeFromUrl(
+            retrievalUrl,
+        );
+
+        rootNodeUrl = await this.loadFromRootNode(
+            schemaRootNode,
+            nodeUrl,
+            retrievalUrl,
+            referencingUrl,
+            defaultMetaSchemaId,
+        );
+
+        const rootNodeId = String(rootNodeUrl);
+
+        this.retrievalRootNodeMap.set(retrievalId, rootNodeUrl);
+        this.rootNodeRetrievalMap.set(rootNodeId, retrievalUrl);
+
+        return rootNodeUrl;
+    }
+
+    private async fetchSchemaRootNodeFromUrl(
+        url: URL,
+    ) {
+        if (this.initialized) {
+            throw new Error("cannot load after initialized");
+        }
+
+        switch (url.protocol) {
+            case "http:":
+            case "http2:": {
+                const result = await fetch(url);
+                const schemaRootNode = await result.json() as unknown;
+
+                return schemaRootNode;
+            }
+
+            case "file:": {
+                // eslint-disable-next-line security/detect-non-literal-fs-filename
+                const content = fs.readFileSync(url.pathname, "utf-8");
+
+                const schemaRootNode = JSON.parse(content) as unknown;
+
+                return schemaRootNode;
+            }
+        }
     }
 
     private initialized = false;

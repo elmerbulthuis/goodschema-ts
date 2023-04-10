@@ -1,4 +1,5 @@
 /* eslint-disable */
+/* spellchecker: disable */
 import * as validation from "../../includes/validation.js";
 import * as types from "./types.js";
 export function* validateSchema(value: types.Schema, path: string[] = []): Iterable<validation.PathError> {
@@ -14,9 +15,6 @@ export function* validateSchema(value: types.Schema, path: string[] = []): Itera
         if (value["$ref"] !== undefined) {
             yield* validateSchemaRef(value["$ref"], [...path, "$ref"]);
         }
-        if (value["$comment"] !== undefined) {
-            yield* validateSchemaComment(value["$comment"], [...path, "$comment"]);
-        }
         if (value["title"] !== undefined) {
             yield* validateSchemaTitle(value["title"], [...path, "title"]);
         }
@@ -25,12 +23,6 @@ export function* validateSchema(value: types.Schema, path: string[] = []): Itera
         }
         if (value["default"] !== undefined) {
             yield* validateSchemaDefault(value["default"], [...path, "default"]);
-        }
-        if (value["readOnly"] !== undefined) {
-            yield* validateSchemaReadonly(value["readOnly"], [...path, "readOnly"]);
-        }
-        if (value["writeOnly"] !== undefined) {
-            yield* validateSchemaWriteonly(value["writeOnly"], [...path, "writeOnly"]);
         }
         if (value["examples"] !== undefined) {
             yield* validateSchemaExamples(value["examples"], [...path, "examples"]);
@@ -115,21 +107,6 @@ export function* validateSchema(value: types.Schema, path: string[] = []): Itera
         }
         if (value["format"] !== undefined) {
             yield* validateSchemaFormat(value["format"], [...path, "format"]);
-        }
-        if (value["contentMediaType"] !== undefined) {
-            yield* validateSchemaContentmediatype(value["contentMediaType"], [...path, "contentMediaType"]);
-        }
-        if (value["contentEncoding"] !== undefined) {
-            yield* validateSchemaContentencoding(value["contentEncoding"], [...path, "contentEncoding"]);
-        }
-        if (value["if"] !== undefined) {
-            yield* validateSchemaIf(value["if"], [...path, "if"]);
-        }
-        if (value["then"] !== undefined) {
-            yield* validateSchemaThen(value["then"], [...path, "then"]);
-        }
-        if (value["else"] !== undefined) {
-            yield* validateSchemaElse(value["else"], [...path, "else"]);
         }
         if (value["allOf"] !== undefined) {
             yield* validateSchemaAllof(value["allOf"], [...path, "allOf"]);
@@ -218,13 +195,6 @@ export function* validateSchemaRef(value: types.SchemaRef, path: string[] = []):
         yield { path, error: "type" };
     }
 }
-export function* validateSchemaComment(value: types.SchemaComment, path: string[] = []): Iterable<validation.PathError> {
-    if (validation.isValidStringType(value)) {
-    }
-    else {
-        yield { path, error: "type" };
-    }
-}
 export function* validateSchemaTitle(value: types.SchemaTitle, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidStringType(value)) {
     }
@@ -240,20 +210,6 @@ export function* validateSchemaDescription(value: types.SchemaDescription, path:
     }
 }
 export function* validateSchemaDefault(value: types.SchemaDefault, path: string[] = []): Iterable<validation.PathError> {
-}
-export function* validateSchemaReadonly(value: types.SchemaReadonly, path: string[] = []): Iterable<validation.PathError> {
-    if (validation.isValidBooleanType(value)) {
-    }
-    else {
-        yield { path, error: "type" };
-    }
-}
-export function* validateSchemaWriteonly(value: types.SchemaWriteonly, path: string[] = []): Iterable<validation.PathError> {
-    if (validation.isValidBooleanType(value)) {
-    }
-    else {
-        yield { path, error: "type" };
-    }
 }
 export function* validateSchemaExamples(value: types.SchemaExamples, path: string[] = []): Iterable<validation.PathError> {
     if (validation.isValidArrayType(value)) {
@@ -411,13 +367,10 @@ export function* validateSchemaEnum(value: types.SchemaEnum, path: string[] = []
         if (!validation.isValidUniqueItems(value, true)) {
             yield { path, error: "unique-items" };
         }
-        yield* validateSchemaEnumItems(value[0], [...path, "0"]);
     }
     else {
         yield { path, error: "type" };
     }
-}
-export function* validateSchemaEnumItems(value: types.SchemaEnumItems, path: string[] = []): Iterable<validation.PathError> {
 }
 export function* validateSchemaType(value: types.SchemaType, path: string[] = []): Iterable<validation.PathError> {
 }
@@ -445,26 +398,6 @@ export function* validateSchemaFormat(value: types.SchemaFormat, path: string[] 
     else {
         yield { path, error: "type" };
     }
-}
-export function* validateSchemaContentmediatype(value: types.SchemaContentmediatype, path: string[] = []): Iterable<validation.PathError> {
-    if (validation.isValidStringType(value)) {
-    }
-    else {
-        yield { path, error: "type" };
-    }
-}
-export function* validateSchemaContentencoding(value: types.SchemaContentencoding, path: string[] = []): Iterable<validation.PathError> {
-    if (validation.isValidStringType(value)) {
-    }
-    else {
-        yield { path, error: "type" };
-    }
-}
-export function* validateSchemaIf(value: types.SchemaIf, path: string[] = []): Iterable<validation.PathError> {
-}
-export function* validateSchemaThen(value: types.SchemaThen, path: string[] = []): Iterable<validation.PathError> {
-}
-export function* validateSchemaElse(value: types.SchemaElse, path: string[] = []): Iterable<validation.PathError> {
 }
 export function* validateSchemaAllof(value: types.SchemaAllof, path: string[] = []): Iterable<validation.PathError> {
 }

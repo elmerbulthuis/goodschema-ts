@@ -7,11 +7,5 @@
   "editor.rulers": [
     100
   ],
-  "cSpell.words": [
-    "camelcase",
-    "cobertura",
-    "endregion",
-    "jns42-generator",
-    "lcov"
-  ]
+  "cSpell.ignorePaths": []
 }

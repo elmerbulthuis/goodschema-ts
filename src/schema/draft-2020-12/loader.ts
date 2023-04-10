@@ -4,7 +4,7 @@ import { selectNodeId, selectNodeInstanceEntries, selectNodeRef } from "./select
 import { Schema } from "./types.js";
 import { validateSchema } from "./validators.js";
 
-export class SchemaLoader extends SchemaLoaderBase<Schema | boolean> {
+export class SchemaLoader extends SchemaLoaderBase<Schema> {
     protected readonly metaSchemaId = metaSchema.metaSchemaId;
 
     public validateSchema(node: Schema): boolean {
@@ -20,12 +20,12 @@ export class SchemaLoader extends SchemaLoaderBase<Schema | boolean> {
 
     protected selectSubNodeEntries(
         nodePointer: string,
-        node: Schema | boolean,
-    ): Iterable<readonly [string, Schema | boolean]> {
+        node: Schema,
+    ): Iterable<readonly [string, Schema]> {
         return selectNodeInstanceEntries(nodePointer, node);
     }
 
-    protected async loadFromUrl(
+    protected async loadFromNode(
         node: Schema,
         nodeUrl: URL,
         retrievalUrl: URL,

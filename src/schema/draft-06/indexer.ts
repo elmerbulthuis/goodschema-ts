@@ -5,36 +5,37 @@ import { metaSchema } from "./meta.js";
 import { selectNodeId, selectNodeInstanceEntries } from "./selectors.js";
 import { Schema } from "./types.js";
 
-export class SchemaIndexer extends SchemaIndexerBase<Schema | boolean> {
+export class SchemaIndexer extends SchemaIndexerBase<Schema> {
     protected readonly metaSchemaId = metaSchema.metaSchemaId;
 
-    public selectRootNodeEntries(): Iterable<[URL, Schema | boolean]> {
+    public selectRootNodeEntries(): Iterable<[URL, Schema]> {
         return [...this.loader.getRootNodeItems()].
             map(({ nodeUrl, node }) => [nodeUrl, node]);
     }
 
     public selectSubNodeEntries(
         nodePointer: string,
-        node: Schema | boolean,
-    ): Iterable<readonly [string, Schema | boolean]> {
+        node: Schema,
+    ): Iterable<readonly [string, Schema]> {
         return selectNodeInstanceEntries(nodePointer, node);
     }
 
-    protected makeNodeId(
+    protected makeNodeUrl(
         node: Schema,
         nodeRootUrl: URL,
         nodePointer: string,
-    ): string {
+    ): URL {
         /*
         if a node has an id set, use that!
         */
         const nodeId = selectNodeId(node);
         if (nodeId != null) {
-            return nodeId;
+            const nodeUrl = new URL(nodeId);
+            return nodeUrl;
         }
 
         const nodeUrl = new URL(`#${nodePointer}`, nodeRootUrl);
-        return String(nodeUrl);
+        return nodeUrl;
     }
 
     constructor(

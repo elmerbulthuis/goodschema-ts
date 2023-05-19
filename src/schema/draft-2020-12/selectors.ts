@@ -1,5 +1,5 @@
-import { appendJsonPointer } from "../../utils/index.js";
-import { Applicator, Core, Metadata, Validation } from "./types.js";
+
+import { Applicator, Core, MetaData, Validation } from "./types.js";
 
 //#region core
 
@@ -51,8 +51,12 @@ export function selectNodeDynamicRef(
     }
 }
 
+//#endregion
+
+//#region metadata
+
 export function selectNodeDescription(
-    node: Metadata,
+    node: MetaData,
 ) {
     if (typeof node === "object") {
         return node.description;
@@ -60,10 +64,18 @@ export function selectNodeDescription(
 }
 
 export function selectNodeDeprecated(
-    node: Metadata,
+    node: MetaData,
 ) {
     if (typeof node === "object") {
         return node.deprecated;
+    }
+}
+
+export function selectNodeExamples(
+    node: MetaData,
+) {
+    if (typeof node === "object") {
+        return node.examples;
     }
 }
 
@@ -71,7 +83,7 @@ export function selectNodeDeprecated(
 
 //#region schema
 
-export function* selectNodeDefEntries(
+export function* selectSubNodeDefEntries(
     nodePointer: string,
     node: Core,
 ) {
@@ -83,7 +95,7 @@ export function* selectNodeDefEntries(
     }
 }
 
-export function* selectNodePropertyEntries(
+export function* selectSubNodePropertyEntries(
     nodePointer: string,
     node: Applicator,
 ) {
@@ -95,7 +107,7 @@ export function* selectNodePropertyEntries(
     }
 }
 
-export function* selectNodeAdditionalPropertiesEntries(
+export function* selectSubNodeAdditionalPropertiesEntries(
     nodePointer: string,
     node: Applicator,
 ) {
@@ -106,7 +118,7 @@ export function* selectNodeAdditionalPropertiesEntries(
     }
 }
 
-export function* selectNodePrefixItemsEntries(
+export function* selectSubNodePrefixItemsEntries(
     nodePointer: string,
     node: Applicator,
 ) {
@@ -118,7 +130,7 @@ export function* selectNodePrefixItemsEntries(
     }
 }
 
-export function* selectNodeItemsEntries(
+export function* selectSubNodeItemsEntries(
     nodePointer: string,
     node: Applicator,
 ) {
@@ -129,7 +141,7 @@ export function* selectNodeItemsEntries(
     }
 }
 
-export function* selectNodeAnyOfEntries(
+export function* selectSubNodeAnyOfEntries(
     nodePointer: string,
     node: Applicator,
 ) {
@@ -142,7 +154,7 @@ export function* selectNodeAnyOfEntries(
     }
 }
 
-export function* selectNodeOneOfEntries(
+export function* selectSubNodeOneOfEntries(
     nodePointer: string,
     node: Applicator,
 ) {
@@ -154,7 +166,7 @@ export function* selectNodeOneOfEntries(
     }
 }
 
-export function* selectNodeAllOfEntries(
+export function* selectSubNodeAllOfEntries(
     nodePointer: string,
     node: Applicator,
 ) {
@@ -166,18 +178,37 @@ export function* selectNodeAllOfEntries(
     }
 }
 
-export function* selectNodeInstanceEntries(
+export function* selectSubNodes(
     nodePointer: string,
     node: Applicator & Core,
-) {
-    yield* selectNodeDefEntries(nodePointer, node);
-    yield* selectNodePropertyEntries(nodePointer, node);
-    yield* selectNodeAdditionalPropertiesEntries(nodePointer, node);
-    yield* selectNodePrefixItemsEntries(nodePointer, node);
-    yield* selectNodeItemsEntries(nodePointer, node);
-    yield* selectNodeAllOfEntries(nodePointer, node);
-    yield* selectNodeAnyOfEntries(nodePointer, node);
-    yield* selectNodeOneOfEntries(nodePointer, node);
+): Iterable<readonly [string, Applicator & Core]> {
+    yield* selectSubNodeDefEntries(nodePointer, node);
+    yield* selectSubNodePropertyEntries(nodePointer, node);
+    yield* selectSubNodeAdditionalPropertiesEntries(nodePointer, node);
+    yield* selectSubNodePrefixItemsEntries(nodePointer, node);
+    yield* selectSubNodeItemsEntries(nodePointer, node);
+    yield* selectSubNodeAllOfEntries(nodePointer, node);
+    yield* selectSubNodeAnyOfEntries(nodePointer, node);
+    yield* selectSubNodeOneOfEntries(nodePointer, node);
+}
+
+export function* selectAllSubNodes(
+    nodePointer: string,
+    node: Applicator & Core,
+): Iterable<readonly [string, Applicator & Core]> {
+    const subNodes = [...selectSubNodes(nodePointer, node)];
+    yield* subNodes;
+    for (const [subPointer, subNode] of subNodes) {
+        yield* selectAllSubNodes(subPointer, subNode);
+    }
+}
+
+export function* selectAllSubNodesAndSelf(
+    nodePointer: string,
+    node: Applicator & Core,
+): Iterable<readonly [string, Applicator & Core]> {
+    yield [nodePointer, node] as const;
+    yield* selectAllSubNodes(nodePointer, node);
 }
 
 //#endregion
@@ -237,7 +268,7 @@ export function selectNodeConst(
 
 //#region validation
 
-export function selectValidationMaxProperties(
+export function selectValidationMaximumProperties(
     node: Validation,
 ) {
     if (typeof node === "object") {
@@ -245,7 +276,7 @@ export function selectValidationMaxProperties(
     }
 }
 
-export function selectValidationMinProperties(
+export function selectValidationMinimumProperties(
     node: Validation,
 ) {
     if (typeof node === "object") {
@@ -261,7 +292,7 @@ export function selectValidationRequired(
     }
 }
 
-export function selectValidationMinItems(
+export function selectValidationMinimumItems(
     node: Validation,
 ) {
     if (typeof node === "object") {
@@ -269,7 +300,7 @@ export function selectValidationMinItems(
     }
 }
 
-export function selectValidationMaxItems(
+export function selectValidationMaximumItems(
     node: Validation,
 ) {
     if (typeof node === "object") {
@@ -285,7 +316,7 @@ export function selectValidationUniqueItems(
     }
 }
 
-export function selectValidationMinLength(
+export function selectValidationMinimumLength(
     node: Validation,
 ) {
     if (typeof node === "object") {
@@ -293,7 +324,7 @@ export function selectValidationMinLength(
     }
 }
 
-export function selectValidationMaxLength(
+export function selectValidationMaximumLength(
     node: Validation,
 ) {
     if (typeof node === "object") {
@@ -301,7 +332,7 @@ export function selectValidationMaxLength(
     }
 }
 
-export function selectValidationPattern(
+export function selectValidationValuePattern(
     node: Validation,
 ) {
     if (typeof node === "object") {
@@ -309,7 +340,7 @@ export function selectValidationPattern(
     }
 }
 
-export function selectValidationMinimum(
+export function selectValidationMinimumInclusive(
     node: Validation,
 ) {
     if (typeof node === "object") {
@@ -317,7 +348,7 @@ export function selectValidationMinimum(
     }
 }
 
-export function selectValidationExclusiveMinimum(
+export function selectValidationMinimumExclusive(
     node: Validation,
 ) {
     if (typeof node === "object") {
@@ -325,7 +356,7 @@ export function selectValidationExclusiveMinimum(
     }
 }
 
-export function selectValidationMaximum(
+export function selectValidationMaximumInclusive(
     node: Validation,
 ) {
     if (typeof node === "object") {
@@ -333,7 +364,7 @@ export function selectValidationMaximum(
     }
 }
 
-export function selectValidationExclusiveMaximum(
+export function selectValidationMaximumExclusive(
     node: Validation,
 ) {
     if (typeof node === "object") {
@@ -363,6 +394,16 @@ export function selectValidationEnum(
     if (typeof node === "object") {
         return node.enum;
     }
+}
+
+//#endregion
+
+//#region helpers
+
+function appendJsonPointer(basePointer: string, ...subPointerParts: string[]) {
+    return basePointer + subPointerParts.
+        map(part => "/" + encodeURI(part)).
+        join("");
 }
 
 //#endregion

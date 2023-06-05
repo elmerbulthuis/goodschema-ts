@@ -1,6 +1,6 @@
 import camelcase from "camelcase";
 import * as fs from "fs";
-import { CompoundDescriptorUnion, NodeDescriptor, TypeDescriptorUnion } from "./descriptors.js";
+import { CompoundUnion, Node, TypeUnion } from "./intermediate.js";
 import { SchemaStrategyBase, SchemaStrategyInterface } from "./strategy.js";
 
 export class SchemaContext implements SchemaStrategyInterface {
@@ -196,30 +196,30 @@ export class SchemaContext implements SchemaStrategyInterface {
         }
     }
 
-    public *selectNodeDescriptors(): Iterable<NodeDescriptor> {
+    public *selectNodes(): Iterable<Node> {
         for (const strategy of Object.values(this.strategies)) {
-            yield* strategy.selectNodeDescriptors();
+            yield* strategy.selectNodes();
         }
     }
 
-    public selectNodeTypeDescriptors(nodeId: string): Iterable<TypeDescriptorUnion> {
+    public selectNodeTypes(nodeId: string): Iterable<TypeUnion> {
         const metaSchemaId = this.nodeMetaMap.get(nodeId);
         if (metaSchemaId == null) {
             throw new Error("meta schema id not found");
         }
 
         const strategy = this.strategies[metaSchemaId];
-        return strategy.selectNodeTypeDescriptors(nodeId);
+        return strategy.selectNodeTypes(nodeId);
     }
 
-    public selectNodeCompoundDescriptors(nodeId: string): Iterable<CompoundDescriptorUnion> {
+    public selectNodeCompounds(nodeId: string): Iterable<CompoundUnion> {
         const metaSchemaId = this.nodeMetaMap.get(nodeId);
         if (metaSchemaId == null) {
             throw new Error("meta schema id not found");
         }
 
         const strategy = this.strategies[metaSchemaId];
-        return strategy.selectNodeCompoundDescriptors(nodeId);
+        return strategy.selectNodeCompounds(nodeId);
     }
 
 }

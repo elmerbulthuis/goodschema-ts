@@ -1,4 +1,4 @@
-import { CompoundDescriptorUnion, NodeDescriptor, TypeDescriptorUnion } from "../descriptors.js";
+import { CompoundUnion, Node, TypeUnion } from "../intermediate.js";
 import { SchemaStrategyBase } from "../strategy.js";
 import { metaSchemaId } from "./meta.js";
 import { selectAllSubNodes, selectAllSubNodesAndSelf, selectNodeDescription, selectNodeEnum, selectNodeExamples, selectNodeId, selectNodePropertyNamesEntries, selectNodeRef, selectNodeSchema, selectNodeTypes, selectSubNodeAdditionalItemsEntries, selectSubNodeAdditionalPropertiesEntries, selectSubNodeAllOfEntries, selectSubNodeAnyOfEntries, selectSubNodeItemsManyEntries, selectSubNodeItemsOneEntries, selectSubNodeOneOfEntries, selectSubNodes, selectValidationMaximumExclusive, selectValidationMaximumInclusive, selectValidationMaximumItems, selectValidationMaximumLength, selectValidationMaximumProperties, selectValidationMinimumExclusive, selectValidationMinimumInclusive, selectValidationMinimumItems, selectValidationMinimumLength, selectValidationMinimumProperties, selectValidationMultipleOf, selectValidationRequired, selectValidationUniqueItems, selectValidationValuePattern } from "./selectors.js";
@@ -110,8 +110,8 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema> {
 
     //#region strategy implementation
 
-    public * selectNodeDescriptors(
-    ): Iterable<NodeDescriptor> {
+    public * selectNodes(
+    ): Iterable<Node> {
         for (const [nodeId, { node }] of this.getNodeItemEntries()) {
             const description = selectNodeDescription(node) ?? "";
             const deprecated = false;
@@ -140,9 +140,9 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema> {
         }
     }
 
-    public *selectNodeTypeDescriptors(
+    public *selectNodeTypes(
         nodeId: string,
-    ): Iterable<TypeDescriptorUnion> {
+    ): Iterable<TypeUnion> {
         const nodeItem = this.getNodeItem(nodeId);
 
         if (nodeItem.node === true) {
@@ -162,37 +162,37 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema> {
             for (const type of types) {
                 switch (type) {
                     case "null":
-                        yield* this.makeNodeTypeDescriptorFromNull();
+                        yield* this.makeNodeTypeFromNull();
                         break;
 
                     case "boolean":
-                        yield* this.makeNodeTypeDescriptorFromBoolean(
+                        yield* this.makeNodeTypeFromBoolean(
                             nodeItem.node,
                         );
                         break;
 
                     case "integer":
-                        yield* this.makeNodeTypeDescriptorFromNumber(
+                        yield* this.makeNodeTypeFromNumber(
                             nodeItem.node,
                             "integer",
                         );
                         break;
 
                     case "number":
-                        yield* this.makeNodeTypeDescriptorFromNumber(
+                        yield* this.makeNodeTypeFromNumber(
                             nodeItem.node,
                             "float",
                         );
                         break;
 
                     case "string":
-                        yield* this.makeNodeTypeDescriptorFromString(
+                        yield* this.makeNodeTypeFromString(
                             nodeItem.node,
                         );
                         break;
 
                     case "array":
-                        yield* this.makeNodeTypeDescriptorFromArray(
+                        yield* this.makeNodeTypeFromArray(
                             nodeItem.node,
                             nodeItem.nodeRootUrl,
                             nodeItem.nodePointer,
@@ -200,7 +200,7 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema> {
                         break;
 
                     case "object":
-                        yield* this.makeNodeTypeDescriptorFromObject(
+                        yield* this.makeNodeTypeFromObject(
                             nodeItem.node,
                             nodeItem.nodeRootUrl,
                             nodeItem.nodePointer,
@@ -212,22 +212,22 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema> {
         }
     }
 
-    public *selectNodeCompoundDescriptors(
+    public *selectNodeCompounds(
         nodeId: string,
-    ): Iterable<CompoundDescriptorUnion> {
+    ): Iterable<CompoundUnion> {
         const nodeItem = this.getNodeItem(nodeId);
 
-        yield* this.makeNodeCompoundDescriptorFromAllOf(
+        yield* this.makeNodeCompoundFromAllOf(
             nodeItem.node,
             nodeItem.nodeRootUrl,
             nodeItem.nodePointer,
         );
-        yield* this.makeNodeCompoundDescriptorFromAnyOf(
+        yield* this.makeNodeCompoundFromAnyOf(
             nodeItem.node,
             nodeItem.nodeRootUrl,
             nodeItem.nodePointer,
         );
-        yield* this.makeNodeCompoundDescriptorFromOneOf(
+        yield* this.makeNodeCompoundFromOneOf(
             nodeItem.node,
             nodeItem.nodeRootUrl,
             nodeItem.nodePointer,
@@ -235,15 +235,15 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema> {
 
     }
 
-    private * makeNodeTypeDescriptorFromNull(): Iterable<TypeDescriptorUnion> {
+    private * makeNodeTypeFromNull(): Iterable<TypeUnion> {
         yield {
             type: "null",
         };
     }
 
-    private * makeNodeTypeDescriptorFromBoolean(
+    private * makeNodeTypeFromBoolean(
         node: Schema,
-    ): Iterable<TypeDescriptorUnion> {
+    ): Iterable<TypeUnion> {
         const enumValues = selectNodeEnum(node) as unknown[];
 
         let options: Array<boolean> | undefined;
@@ -258,10 +258,10 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema> {
         };
     }
 
-    private * makeNodeTypeDescriptorFromNumber(
+    private * makeNodeTypeFromNumber(
         node: Schema,
         numberType: "integer" | "float",
-    ): Iterable<TypeDescriptorUnion> {
+    ): Iterable<TypeUnion> {
         const enumValues = selectNodeEnum(node) as unknown[];
 
         let options: Array<number> | undefined;
@@ -288,9 +288,9 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema> {
         };
     }
 
-    private * makeNodeTypeDescriptorFromString(
+    private * makeNodeTypeFromString(
         node: Schema,
-    ): Iterable<TypeDescriptorUnion> {
+    ): Iterable<TypeUnion> {
         const enumValues = selectNodeEnum(node) as unknown[];
 
         let options: Array<string> | undefined;
@@ -312,11 +312,11 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema> {
         };
     }
 
-    private * makeNodeTypeDescriptorFromArray(
+    private * makeNodeTypeFromArray(
         node: Schema,
         nodeRootUrl: URL,
         nodePointer: string,
-    ): Iterable<TypeDescriptorUnion> {
+    ): Iterable<TypeUnion> {
         const itemsOne = [...selectSubNodeItemsOneEntries(nodePointer, node)];
         const itemsMany = [...selectSubNodeItemsManyEntries(nodePointer, node)];
         const additionalItems = [...selectSubNodeAdditionalItemsEntries(nodePointer, node)];
@@ -383,11 +383,11 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema> {
         }
     }
 
-    private * makeNodeTypeDescriptorFromObject(
+    private * makeNodeTypeFromObject(
         node: Schema,
         nodeRootUrl: URL,
         nodePointer: string,
-    ): Iterable<TypeDescriptorUnion> {
+    ): Iterable<TypeUnion> {
         const propertyNames = [...selectNodePropertyNamesEntries(nodePointer, node)];
         const additionalProperties =
             [...selectSubNodeAdditionalPropertiesEntries(nodePointer, node)];
@@ -437,11 +437,11 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema> {
         }
     }
 
-    private * makeNodeCompoundDescriptorFromAllOf(
+    private * makeNodeCompoundFromAllOf(
         node: Schema,
         nodeRootUrl: URL,
         nodePointer: string,
-    ): Iterable<CompoundDescriptorUnion> {
+    ): Iterable<CompoundUnion> {
         const allOf = [...selectSubNodeAllOfEntries(nodePointer, node)];
         if (allOf.length > 0) {
             const typeNodeIds = allOf.map(([typeNodePointer]) => {
@@ -460,11 +460,11 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema> {
         }
     }
 
-    private * makeNodeCompoundDescriptorFromAnyOf(
+    private * makeNodeCompoundFromAnyOf(
         node: Schema,
         nodeRootUrl: URL,
         nodePointer: string,
-    ): Iterable<CompoundDescriptorUnion> {
+    ): Iterable<CompoundUnion> {
         const allOf = [...selectSubNodeAnyOfEntries(nodePointer, node)];
         if (allOf.length > 0) {
             const typeNodeIds = allOf.map(([typeNodePointer]) => {
@@ -483,11 +483,11 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema> {
         }
     }
 
-    private * makeNodeCompoundDescriptorFromOneOf(
+    private * makeNodeCompoundFromOneOf(
         node: Schema,
         nodeRootUrl: URL,
         nodePointer: string,
-    ): Iterable<CompoundDescriptorUnion> {
+    ): Iterable<CompoundUnion> {
         const allOf = [...selectSubNodeOneOfEntries(nodePointer, node)];
         if (allOf.length > 0) {
             const typeNodeIds = allOf.map(([typeNodePointer]) => {

@@ -1,25 +1,25 @@
 import ts from "typescript";
-import { CompoundDescriptorUnion, NodeDescriptor, TypeDescriptorUnion } from "../schema/descriptors.js";
+import { CompoundUnion, Node, TypeUnion } from "../schema/intermediate.js";
 import { CodeGeneratorBase } from "./code-generator-base.js";
 
 export class TypesTsCodeGenerator extends CodeGeneratorBase {
 
     public * getStatements() {
-        for (const nodeDescriptor of this.context.selectNodeDescriptors()) {
+        for (const node of this.context.selectNodes()) {
             yield this.generateTypeDeclarationStatement(
-                nodeDescriptor,
+                node,
             );
         }
     }
 
     protected generateTypeDeclarationStatement(
-        nodeDescriptor: NodeDescriptor,
+        node: Node,
     ) {
         const typeDefinition = this.generateTypeDefinition(
-            nodeDescriptor,
+            node,
         );
 
-        const typeName = this.getTypeName(nodeDescriptor.nodeId);
+        const typeName = this.getTypeName(node.nodeId);
         const declaration = this.factory.createTypeAliasDeclaration(
             [
                 this.factory.createToken(ts.SyntaxKind.ExportKeyword),
@@ -30,8 +30,8 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
         );
 
         const comments = [
-            nodeDescriptor.description,
-            nodeDescriptor.deprecated ? "@deprecated" : "",
+            node.description,
+            node.deprecated ? "@deprecated" : "",
         ].
             map(line => line.trim()).
             filter(line => line.length > 0).
@@ -51,22 +51,22 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
     }
 
     protected generateTypeDefinition(
-        nodeDescriptor: NodeDescriptor,
+        node: Node,
     ): ts.TypeNode {
         const { factory: f } = this;
 
-        const typeNodes = [...this.generateTypeDefinitionElements(nodeDescriptor.nodeId)];
-        const compoundNodes = [...this.generateCompoundDefinitionElements(nodeDescriptor.nodeId)];
+        const typeNodes = [...this.generateTypeDefinitionElements(node.nodeId)];
+        const compoundNodes = [...this.generateCompoundDefinitionElements(node.nodeId)];
 
-        let node: ts.TypeNode | undefined;
+        let typeDefinitionNode: ts.TypeNode | undefined;
         if (compoundNodes.length > 0) {
             const typeNode = f.createParenthesizedType(f.createIntersectionTypeNode(
                 compoundNodes,
             ));
-            node = node == null ?
+            typeDefinitionNode = typeDefinitionNode == null ?
                 typeNode :
                 f.createParenthesizedType(f.createIntersectionTypeNode([
-                    node,
+                    typeDefinitionNode,
                     typeNode,
                 ]));
         }
@@ -74,50 +74,50 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
             const typeNode = f.createParenthesizedType(f.createUnionTypeNode(
                 typeNodes,
             ));
-            node = node == null ?
+            typeDefinitionNode = typeDefinitionNode == null ?
                 typeNode :
                 f.createParenthesizedType(f.createIntersectionTypeNode([
-                    node,
+                    typeDefinitionNode,
                     typeNode,
                 ]));
         }
-        if (nodeDescriptor.superNodeId != null) {
-            const typeNode = this.generateTypeReference(nodeDescriptor.superNodeId);
-            node = node == null ?
+        if (node.superNodeId != null) {
+            const typeNode = this.generateTypeReference(node.superNodeId);
+            typeDefinitionNode = typeDefinitionNode == null ?
                 typeNode :
                 f.createParenthesizedType(f.createIntersectionTypeNode([
-                    node,
+                    typeDefinitionNode,
                     typeNode,
                 ]));
         }
 
-        if (node == null) {
-            node = f.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
+        if (typeDefinitionNode == null) {
+            typeDefinitionNode = f.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
         }
 
-        return node;
+        return typeDefinitionNode;
     }
 
     protected *generateCompoundDefinitionElements(
         nodeId: string,
     ): Iterable<ts.TypeNode> {
-        for (const compoundDescriptor of this.context.selectNodeCompoundDescriptors(nodeId)) {
-            yield this.generateCompoundDefinitionElement(compoundDescriptor);
+        for (const compound of this.context.selectNodeCompounds(nodeId)) {
+            yield this.generateCompoundDefinitionElement(compound);
         }
     }
 
     protected *generateTypeDefinitionElements(
         nodeId: string,
     ): Iterable<ts.TypeNode> {
-        for (const typeDescriptor of this.context.selectNodeTypeDescriptors(nodeId)) {
-            yield this.generateTypeDefinitionElement(typeDescriptor);
+        for (const type of this.context.selectNodeTypes(nodeId)) {
+            yield this.generateTypeDefinitionElement(type);
         }
     }
 
     protected generateTypeDefinitionElement(
-        typeDescriptor: TypeDescriptorUnion,
+        type: TypeUnion,
     ): ts.TypeNode {
-        switch (typeDescriptor.type) {
+        switch (type.type) {
             case "never":
                 return this.generateNeverTypeDefinition();
 
@@ -138,23 +138,23 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 
             case "tuple":
                 return this.generateTupleTypeDefinition(
-                    typeDescriptor.itemTypeNodeIds,
+                    type.itemTypeNodeIds,
                 );
 
             case "array":
                 return this.generateArrayTypeDefinition(
-                    typeDescriptor.itemTypeNodeId,
+                    type.itemTypeNodeId,
                 );
 
             case "interface":
                 return this.generateInterfaceTypeDefinition(
-                    typeDescriptor.propertyTypeNodeIds,
-                    new Set(typeDescriptor.requiredProperties),
+                    type.propertyTypeNodeIds,
+                    new Set(type.requiredProperties),
                 );
 
             case "record":
                 return this.generateRecordTypeDefinition(
-                    typeDescriptor.propertyTypeNodeId,
+                    type.propertyTypeNodeId,
                 );
 
             default:
@@ -163,22 +163,22 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
     }
 
     protected generateCompoundDefinitionElement(
-        compoundDescriptor: CompoundDescriptorUnion,
+        compound: CompoundUnion,
     ): ts.TypeNode {
-        switch (compoundDescriptor.type) {
+        switch (compound.type) {
             case "one-of":
                 return this.generateOneOfCompoundDefinition(
-                    compoundDescriptor.typeNodeIds,
+                    compound.typeNodeIds,
                 );
 
             case "any-of":
                 return this.generateAnyOfCompoundDefinition(
-                    compoundDescriptor.typeNodeIds,
+                    compound.typeNodeIds,
                 );
 
             case "all-of":
                 return this.generateAllOfCompoundDefinition(
-                    compoundDescriptor.typeNodeIds,
+                    compound.typeNodeIds,
                 );
 
             default:

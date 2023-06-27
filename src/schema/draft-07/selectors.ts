@@ -1,38 +1,38 @@
-import { Schema } from "@jns42/jns42-schema-draft-07";
+import { Draft07Schema } from "@jns42/jns42-schema-draft-07";
 
 //#region core
 
-export function selectNodeSchema(node: Schema) {
+export function selectNodeSchema(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.$schema;
 	}
 }
 
-export function selectNodeId(node: Schema) {
+export function selectNodeId(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.$id;
 	}
 }
 
-export function selectNodeRef(node: Schema) {
+export function selectNodeRef(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.$ref;
 	}
 }
 
-export function selectNodeDescription(node: Schema) {
+export function selectNodeDescription(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.$comment;
 	}
 }
 
-export function selectNodeTitle(node: Schema) {
+export function selectNodeTitle(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.title;
 	}
 }
 
-export function selectNodeExamples(node: Schema) {
+export function selectNodeExamples(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.examples;
 	}
@@ -44,7 +44,7 @@ export function selectNodeExamples(node: Schema) {
 
 export function* selectSubNodeDefinitionsEntries(
 	nodePointer: string,
-	node: Schema
+	node: Draft07Schema
 ) {
 	if (typeof node === "object" && node.definitions != null) {
 		for (const [key, subNode] of Object.entries(node.definitions)) {
@@ -56,7 +56,7 @@ export function* selectSubNodeDefinitionsEntries(
 
 export function* selectSubNodePropertyEntries(
 	nodePointer: string,
-	node: Schema
+	node: Draft07Schema
 ) {
 	if (typeof node === "object" && node.properties != null) {
 		for (const [key, subNode] of Object.entries(node.properties)) {
@@ -68,7 +68,7 @@ export function* selectSubNodePropertyEntries(
 
 export function* selectSubNodeAdditionalPropertiesEntries(
 	nodePointer: string,
-	node: Schema
+	node: Draft07Schema
 ) {
 	if (typeof node === "object" && node.additionalProperties != null) {
 		const subNode = node.additionalProperties;
@@ -82,7 +82,7 @@ export function* selectSubNodeAdditionalPropertiesEntries(
 
 export function* selectSubNodeItemsOneEntries(
 	nodePointer: string,
-	node: Schema
+	node: Draft07Schema
 ) {
 	if (
 		typeof node === "object" &&
@@ -97,7 +97,7 @@ export function* selectSubNodeItemsOneEntries(
 
 export function* selectSubNodeItemsManyEntries(
 	nodePointer: string,
-	node: Schema
+	node: Draft07Schema
 ) {
 	if (
 		typeof node === "object" &&
@@ -115,7 +115,7 @@ export function* selectSubNodeItemsManyEntries(
 
 export function* selectSubNodeAdditionalItemsEntries(
 	nodePointer: string,
-	node: Schema
+	node: Draft07Schema
 ) {
 	if (typeof node === "object" && node.additionalItems != null) {
 		const subNode = node.additionalItems;
@@ -124,7 +124,10 @@ export function* selectSubNodeAdditionalItemsEntries(
 	}
 }
 
-export function* selectSubNodeAnyOfEntries(nodePointer: string, node: Schema) {
+export function* selectSubNodeAnyOfEntries(
+	nodePointer: string,
+	node: Draft07Schema
+) {
 	if (typeof node === "object" && node.anyOf != null) {
 		for (const [key, subNode] of Object.entries(node.anyOf)) {
 			const subNodePointer = appendJsonPointer(nodePointer, "anyOf", key);
@@ -133,7 +136,10 @@ export function* selectSubNodeAnyOfEntries(nodePointer: string, node: Schema) {
 	}
 }
 
-export function* selectSubNodeOneOfEntries(nodePointer: string, node: Schema) {
+export function* selectSubNodeOneOfEntries(
+	nodePointer: string,
+	node: Draft07Schema
+) {
 	if (typeof node === "object" && node.oneOf != null) {
 		for (const [key, subNode] of Object.entries(node.oneOf)) {
 			const subNodePointer = appendJsonPointer(nodePointer, "oneOf", key);
@@ -142,7 +148,10 @@ export function* selectSubNodeOneOfEntries(nodePointer: string, node: Schema) {
 	}
 }
 
-export function* selectSubNodeAllOfEntries(nodePointer: string, node: Schema) {
+export function* selectSubNodeAllOfEntries(
+	nodePointer: string,
+	node: Draft07Schema
+) {
 	if (typeof node === "object" && node.allOf != null) {
 		for (const [key, subNode] of Object.entries(node.allOf)) {
 			const subNodePointer = appendJsonPointer(nodePointer, "allOf", key);
@@ -153,8 +162,8 @@ export function* selectSubNodeAllOfEntries(nodePointer: string, node: Schema) {
 
 export function* selectSubNodes(
 	nodePointer: string,
-	node: Schema
-): Iterable<readonly [string, Schema]> {
+	node: Draft07Schema
+): Iterable<readonly [string, Draft07Schema]> {
 	yield* selectSubNodeDefinitionsEntries(nodePointer, node);
 	yield* selectSubNodePropertyEntries(nodePointer, node);
 	yield* selectSubNodeAdditionalPropertiesEntries(nodePointer, node);
@@ -168,8 +177,8 @@ export function* selectSubNodes(
 
 export function* selectAllSubNodes(
 	nodePointer: string,
-	node: Schema
-): Iterable<readonly [string, Schema]> {
+	node: Draft07Schema
+): Iterable<readonly [string, Draft07Schema]> {
 	const subNodes = [...selectSubNodes(nodePointer, node)];
 	yield* subNodes;
 	for (const [subPointer, subNode] of subNodes) {
@@ -179,8 +188,8 @@ export function* selectAllSubNodes(
 
 export function* selectAllSubNodesAndSelf(
 	nodePointer: string,
-	node: Schema
-): Iterable<readonly [string, Schema]> {
+	node: Draft07Schema
+): Iterable<readonly [string, Draft07Schema]> {
 	yield [nodePointer, node] as const;
 	yield* selectAllSubNodes(nodePointer, node);
 }
@@ -189,7 +198,7 @@ export function* selectAllSubNodesAndSelf(
 
 //#region type
 
-export function selectNodeTypes(node: Schema) {
+export function selectNodeTypes(node: Draft07Schema) {
 	if (typeof node === "object" && node.type != null) {
 		if (Array.isArray(node.type)) {
 			return node.type;
@@ -199,7 +208,7 @@ export function selectNodeTypes(node: Schema) {
 	}
 }
 
-export function* selectNodeRequiredProperties(node: Schema) {
+export function* selectNodeRequiredProperties(node: Draft07Schema) {
 	if (typeof node === "object" && node.required != null) {
 		yield* node.required as string[];
 	}
@@ -207,7 +216,7 @@ export function* selectNodeRequiredProperties(node: Schema) {
 
 export function* selectNodePropertyNamesEntries(
 	nodePointer: string,
-	node: Schema
+	node: Draft07Schema
 ) {
 	if (typeof node === "object" && node.properties != null) {
 		for (const propertyName of Object.keys(node.properties)) {
@@ -221,7 +230,7 @@ export function* selectNodePropertyNamesEntries(
 	}
 }
 
-export function selectNodeEnum(node: Schema) {
+export function selectNodeEnum(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.enum;
 	}
@@ -231,91 +240,91 @@ export function selectNodeEnum(node: Schema) {
 
 //#region validation
 
-export function selectValidationMaximumProperties(node: Schema) {
+export function selectValidationMaximumProperties(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.maxProperties;
 	}
 }
 
-export function selectValidationMinimumProperties(node: Schema) {
+export function selectValidationMinimumProperties(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.minProperties;
 	}
 }
 
-export function selectValidationRequired(node: Schema) {
+export function selectValidationRequired(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.required;
 	}
 }
 
-export function selectValidationMinimumItems(node: Schema) {
+export function selectValidationMinimumItems(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.minItems;
 	}
 }
 
-export function selectValidationMaximumItems(node: Schema) {
+export function selectValidationMaximumItems(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.maxItems;
 	}
 }
 
-export function selectValidationUniqueItems(node: Schema) {
+export function selectValidationUniqueItems(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.uniqueItems;
 	}
 }
 
-export function selectValidationMinimumLength(node: Schema) {
+export function selectValidationMinimumLength(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.minLength;
 	}
 }
 
-export function selectValidationMaximumLength(node: Schema) {
+export function selectValidationMaximumLength(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.maxLength;
 	}
 }
 
-export function selectValidationValuePattern(node: Schema) {
+export function selectValidationValuePattern(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.pattern;
 	}
 }
 
-export function selectValidationMinimumInclusive(node: Schema) {
+export function selectValidationMinimumInclusive(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.minimum;
 	}
 }
 
-export function selectValidationMinimumExclusive(node: Schema) {
+export function selectValidationMinimumExclusive(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.exclusiveMinimum;
 	}
 }
 
-export function selectValidationMaximumInclusive(node: Schema) {
+export function selectValidationMaximumInclusive(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.maximum;
 	}
 }
 
-export function selectValidationMaximumExclusive(node: Schema) {
+export function selectValidationMaximumExclusive(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.exclusiveMaximum;
 	}
 }
 
-export function selectValidationMultipleOf(node: Schema) {
+export function selectValidationMultipleOf(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.multipleOf;
 	}
 }
 
-export function selectValidationEnum(node: Schema) {
+export function selectValidationEnum(node: Draft07Schema) {
 	if (typeof node === "object") {
 		return node.enum;
 	}

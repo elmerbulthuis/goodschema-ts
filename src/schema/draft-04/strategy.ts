@@ -1,4 +1,4 @@
-import { Schema, isSchema } from "@jns42/jns42-schema-draft-04";
+import { Draft04Schema, isDraft04Schema } from "@jns42/jns42-schema-draft-04";
 import { CompoundUnion, Node, TypeUnion } from "../intermediate.js";
 import { SchemaStrategyBase } from "../strategy.js";
 import { metaSchemaId } from "./meta.js";
@@ -35,23 +35,29 @@ import {
 	selectValidationValuePattern,
 } from "./selectors.js";
 
-export class SchemaStrategy extends SchemaStrategyBase<Schema | boolean> {
+export class SchemaStrategy extends SchemaStrategyBase<
+	Draft04Schema | boolean
+> {
 	//#region super implementation
 
 	protected readonly metaSchemaId = metaSchemaId;
 
-	public isSchemaRootNode(node: unknown): node is Schema {
+	public isSchemaRootNode(node: unknown): node is Draft04Schema {
 		const schemaId = selectNodeSchema(node as any);
 		if (schemaId == null) {
 			return false;
 		}
 		return schemaId === this.metaSchemaId;
 	}
-	public isSchema(node: unknown): node is Schema {
-		return isSchema(node);
+	public isSchema(node: unknown): node is Draft04Schema {
+		return isDraft04Schema(node);
 	}
 
-	public makeNodeUrl(node: Schema, nodeRootUrl: URL, nodePointer: string): URL {
+	public makeNodeUrl(
+		node: Draft04Schema,
+		nodeRootUrl: URL,
+		nodePointer: string
+	): URL {
 		let nodeUrl = this.selectNodeUrl(node);
 		if (nodeUrl != null) {
 			return nodeUrl;
@@ -61,7 +67,7 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema | boolean> {
 		return nodeUrl;
 	}
 
-	public selectNodeUrl(node: Schema) {
+	public selectNodeUrl(node: Draft04Schema) {
 		const nodeId = selectNodeId(node);
 		if (nodeId != null) {
 			const nodeUrl = new URL(nodeId);
@@ -71,12 +77,12 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema | boolean> {
 
 	public selectAllSubNodeEntriesAndSelf(
 		nodePointer: string,
-		node: Schema
-	): Iterable<readonly [string, boolean | Schema]> {
+		node: Draft04Schema
+	): Iterable<readonly [string, boolean | Draft04Schema]> {
 		return selectAllSubNodesAndSelf(nodePointer, node);
 	}
 	public *selectAllReferencedNodeUrls(
-		rootNode: Schema,
+		rootNode: Draft04Schema,
 		rootNodeUrl: URL,
 		retrievalUrl: URL
 	): Iterable<readonly [URL, URL]> {
@@ -94,7 +100,11 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema | boolean> {
 		}
 	}
 
-	protected async loadFromNode(node: Schema, nodeUrl: URL, retrievalUrl: URL) {
+	protected async loadFromNode(
+		node: Draft04Schema,
+		nodeUrl: URL,
+		retrievalUrl: URL
+	) {
 		const nodeRef = selectNodeRef(node);
 
 		if (nodeRef != null) {
@@ -235,7 +245,7 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema | boolean> {
 	}
 
 	private *makeNodeTypeFromBoolean(
-		node: Schema | boolean
+		node: Draft04Schema | boolean
 	): Iterable<TypeUnion> {
 		const enumValues = selectNodeEnum(node) as unknown[];
 
@@ -252,7 +262,7 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema | boolean> {
 	}
 
 	private *makeNodeTypeFromNumber(
-		node: Schema | boolean,
+		node: Draft04Schema | boolean,
 		numberType: "integer" | "float"
 	): Iterable<TypeUnion> {
 		const enumValues = selectNodeEnum(node) as unknown[];
@@ -281,7 +291,9 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema | boolean> {
 		};
 	}
 
-	private *makeNodeTypeFromString(node: Schema | boolean): Iterable<TypeUnion> {
+	private *makeNodeTypeFromString(
+		node: Draft04Schema | boolean
+	): Iterable<TypeUnion> {
 		const enumValues = selectNodeEnum(node) as unknown[];
 
 		let options: Array<string> | undefined;
@@ -304,7 +316,7 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema | boolean> {
 	}
 
 	private *makeNodeTypeFromArray(
-		node: Schema | boolean,
+		node: Draft04Schema | boolean,
 		nodeRootUrl: URL,
 		nodePointer: string
 	): Iterable<TypeUnion> {
@@ -364,7 +376,7 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema | boolean> {
 	}
 
 	private *makeNodeTypeFromObject(
-		node: Schema | boolean,
+		node: Draft04Schema | boolean,
 		nodeRootUrl: URL,
 		nodePointer: string
 	): Iterable<TypeUnion> {
@@ -421,7 +433,7 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema | boolean> {
 	}
 
 	private *makeNodeCompoundFromAllOf(
-		node: Schema | boolean,
+		node: Draft04Schema | boolean,
 		nodeRootUrl: URL,
 		nodePointer: string
 	): Iterable<CompoundUnion> {
@@ -441,7 +453,7 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema | boolean> {
 	}
 
 	private *makeNodeCompoundFromAnyOf(
-		node: Schema | boolean,
+		node: Draft04Schema | boolean,
 		nodeRootUrl: URL,
 		nodePointer: string
 	): Iterable<CompoundUnion> {
@@ -461,7 +473,7 @@ export class SchemaStrategy extends SchemaStrategyBase<Schema | boolean> {
 	}
 
 	private *makeNodeCompoundFromOneOf(
-		node: Schema | boolean,
+		node: Draft04Schema | boolean,
 		nodeRootUrl: URL,
 		nodePointer: string
 	): Iterable<CompoundUnion> {

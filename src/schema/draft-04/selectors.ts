@@ -1,20 +1,20 @@
-import { Schema } from "@jns42/jns42-schema-draft-04";
+import { Draft04Schema } from "@jns42/jns42-schema-draft-04";
 
 //#region core
 
-export function selectNodeSchema(node: Schema | boolean) {
+export function selectNodeSchema(node: Draft04Schema | boolean) {
 	if (typeof node === "object") {
 		return node.$schema;
 	}
 }
 
-export function selectNodeId(node: Schema | boolean) {
+export function selectNodeId(node: Draft04Schema | boolean) {
 	if (typeof node === "object") {
 		return node.id;
 	}
 }
 
-export function selectNodeRef(node: Schema | boolean) {
+export function selectNodeRef(node: Draft04Schema | boolean) {
 	// $ref is not in the schema
 	if (
 		typeof node === "object" &&
@@ -25,13 +25,13 @@ export function selectNodeRef(node: Schema | boolean) {
 	}
 }
 
-export function selectNodeTitle(node: Schema | boolean) {
+export function selectNodeTitle(node: Draft04Schema | boolean) {
 	if (typeof node === "object") {
 		return node.title;
 	}
 }
 
-export function selectNodeDescription(node: Schema | boolean) {
+export function selectNodeDescription(node: Draft04Schema | boolean) {
 	if (typeof node === "object") {
 		return node.description;
 	}
@@ -43,7 +43,7 @@ export function selectNodeDescription(node: Schema | boolean) {
 
 export function* selectSubNodeDefinitionsEntries(
 	nodePointer: string,
-	node: Schema | boolean
+	node: Draft04Schema | boolean
 ) {
 	if (typeof node === "object" && node.definitions != null) {
 		for (const [key, subNode] of Object.entries(node.definitions)) {
@@ -55,7 +55,7 @@ export function* selectSubNodeDefinitionsEntries(
 
 export function* selectSubNodePropertyEntries(
 	nodePointer: string,
-	node: Schema | boolean
+	node: Draft04Schema | boolean
 ) {
 	if (typeof node === "object" && node.properties != null) {
 		for (const [key, subNode] of Object.entries(node.properties)) {
@@ -67,7 +67,7 @@ export function* selectSubNodePropertyEntries(
 
 export function* selectSubNodeAdditionalPropertiesEntries(
 	nodePointer: string,
-	node: Schema | boolean
+	node: Draft04Schema | boolean
 ) {
 	if (typeof node === "object") {
 		if (node.additionalProperties != null) {
@@ -89,7 +89,7 @@ export function* selectSubNodeAdditionalPropertiesEntries(
 
 export function* selectSubNodeItemsOneEntries(
 	nodePointer: string,
-	node: Schema | boolean
+	node: Draft04Schema | boolean
 ) {
 	if (
 		typeof node === "object" &&
@@ -104,7 +104,7 @@ export function* selectSubNodeItemsOneEntries(
 
 export function* selectSubNodeItemsManyEntries(
 	nodePointer: string,
-	node: Schema | boolean
+	node: Draft04Schema | boolean
 ) {
 	if (
 		typeof node === "object" &&
@@ -113,14 +113,14 @@ export function* selectSubNodeItemsManyEntries(
 	) {
 		for (const [key, subNode] of Object.entries(node.items)) {
 			const subNodePointer = appendJsonPointer(nodePointer, "items", key);
-			yield [subNodePointer, subNode] as [string, Schema];
+			yield [subNodePointer, subNode] as [string, Draft04Schema];
 		}
 	}
 }
 
 export function* selectSubNodeAdditionalItemsEntries(
 	nodePointer: string,
-	node: Schema | boolean
+	node: Draft04Schema | boolean
 ) {
 	if (typeof node === "object") {
 		if (node.additionalItems != null) {
@@ -136,44 +136,44 @@ export function* selectSubNodeAdditionalItemsEntries(
 
 export function* selectSubNodeAnyOfEntries(
 	nodePointer: string,
-	node: Schema | boolean
+	node: Draft04Schema | boolean
 ) {
 	if (typeof node === "object" && node.anyOf != null) {
 		for (const [key, subNode] of Object.entries(node.anyOf)) {
 			const subNodePointer = appendJsonPointer(nodePointer, "anyOf", key);
-			yield [subNodePointer, subNode] as [string, Schema];
+			yield [subNodePointer, subNode] as [string, Draft04Schema];
 		}
 	}
 }
 
 export function* selectSubNodeOneOfEntries(
 	nodePointer: string,
-	node: Schema | boolean
+	node: Draft04Schema | boolean
 ) {
 	if (typeof node === "object" && node.oneOf != null) {
 		for (const [key, subNode] of Object.entries(node.oneOf)) {
 			const subNodePointer = appendJsonPointer(nodePointer, "oneOf", key);
-			yield [subNodePointer, subNode] as [string, Schema];
+			yield [subNodePointer, subNode] as [string, Draft04Schema];
 		}
 	}
 }
 
 export function* selectSubNodeAllOfEntries(
 	nodePointer: string,
-	node: Schema | boolean
+	node: Draft04Schema | boolean
 ) {
 	if (typeof node === "object" && node.allOf != null) {
 		for (const [key, subNode] of Object.entries(node.allOf)) {
 			const subNodePointer = appendJsonPointer(nodePointer, "allOf", key);
-			yield [subNodePointer, subNode] as [string, Schema];
+			yield [subNodePointer, subNode] as [string, Draft04Schema];
 		}
 	}
 }
 
 export function* selectSubNodes(
 	nodePointer: string,
-	node: Schema | boolean
-): Iterable<readonly [string, Schema | boolean]> {
+	node: Draft04Schema | boolean
+): Iterable<readonly [string, Draft04Schema | boolean]> {
 	yield* selectSubNodeDefinitionsEntries(nodePointer, node);
 	yield* selectSubNodePropertyEntries(nodePointer, node);
 	yield* selectSubNodeAdditionalPropertiesEntries(nodePointer, node);
@@ -187,8 +187,8 @@ export function* selectSubNodes(
 
 export function* selectAllSubNodes(
 	nodePointer: string,
-	node: Schema
-): Iterable<readonly [string, Schema | boolean]> {
+	node: Draft04Schema
+): Iterable<readonly [string, Draft04Schema | boolean]> {
 	const subNodes = [...selectSubNodes(nodePointer, node)];
 	yield* subNodes;
 	for (const [subPointer, subNode] of subNodes) {
@@ -201,8 +201,8 @@ export function* selectAllSubNodes(
 
 export function* selectAllSubNodesAndSelf(
 	nodePointer: string,
-	node: Schema
-): Iterable<readonly [string, Schema | boolean]> {
+	node: Draft04Schema
+): Iterable<readonly [string, Draft04Schema | boolean]> {
 	yield [nodePointer, node] as const;
 	yield* selectAllSubNodes(nodePointer, node);
 }
@@ -211,7 +211,7 @@ export function* selectAllSubNodesAndSelf(
 
 //#region type
 
-export function selectNodeTypes(node: Schema | boolean) {
+export function selectNodeTypes(node: Draft04Schema | boolean) {
 	if (typeof node === "object" && node.type != null) {
 		if (Array.isArray(node.type)) {
 			return node.type;
@@ -223,7 +223,7 @@ export function selectNodeTypes(node: Schema | boolean) {
 
 export function* selectNodePropertyNamesEntries(
 	nodePointer: string,
-	node: Schema | boolean
+	node: Draft04Schema | boolean
 ) {
 	if (typeof node === "object" && node.properties != null) {
 		for (const propertyName of Object.keys(node.properties)) {
@@ -237,7 +237,7 @@ export function* selectNodePropertyNamesEntries(
 	}
 }
 
-export function selectNodeEnum(node: Schema | boolean) {
+export function selectNodeEnum(node: Draft04Schema | boolean) {
 	if (typeof node === "object") {
 		return node.enum;
 	}
@@ -247,61 +247,67 @@ export function selectNodeEnum(node: Schema | boolean) {
 
 //#region validation
 
-export function selectValidationMaximumProperties(node: Schema | boolean) {
+export function selectValidationMaximumProperties(
+	node: Draft04Schema | boolean
+) {
 	if (typeof node === "object") {
 		return node.maxProperties;
 	}
 }
 
-export function selectValidationMinimumProperties(node: Schema | boolean) {
+export function selectValidationMinimumProperties(
+	node: Draft04Schema | boolean
+) {
 	if (typeof node === "object") {
 		return node.minProperties;
 	}
 }
 
-export function selectValidationRequired(node: Schema | boolean) {
+export function selectValidationRequired(node: Draft04Schema | boolean) {
 	if (typeof node === "object") {
 		return node.required as string[];
 	}
 }
 
-export function selectValidationMinimumItems(node: Schema | boolean) {
+export function selectValidationMinimumItems(node: Draft04Schema | boolean) {
 	if (typeof node === "object") {
 		return node.minItems;
 	}
 }
 
-export function selectValidationMaximumItems(node: Schema | boolean) {
+export function selectValidationMaximumItems(node: Draft04Schema | boolean) {
 	if (typeof node === "object") {
 		return node.maxItems;
 	}
 }
 
-export function selectValidationUniqueItems(node: Schema | boolean) {
+export function selectValidationUniqueItems(node: Draft04Schema | boolean) {
 	if (typeof node === "object") {
 		return node.uniqueItems;
 	}
 }
 
-export function selectValidationMinimumLength(node: Schema | boolean) {
+export function selectValidationMinimumLength(node: Draft04Schema | boolean) {
 	if (typeof node === "object") {
 		return node.minLength;
 	}
 }
 
-export function selectValidationMaximumLength(node: Schema | boolean) {
+export function selectValidationMaximumLength(node: Draft04Schema | boolean) {
 	if (typeof node === "object") {
 		return node.maxLength;
 	}
 }
 
-export function selectValidationValuePattern(node: Schema | boolean) {
+export function selectValidationValuePattern(node: Draft04Schema | boolean) {
 	if (typeof node === "object") {
 		return node.pattern;
 	}
 }
 
-export function selectValidationMinimumInclusive(node: Schema | boolean) {
+export function selectValidationMinimumInclusive(
+	node: Draft04Schema | boolean
+) {
 	if (typeof node === "object") {
 		if (node.exclusiveMinimum ?? false) {
 			return;
@@ -311,7 +317,9 @@ export function selectValidationMinimumInclusive(node: Schema | boolean) {
 	}
 }
 
-export function selectValidationMinimumExclusive(node: Schema | boolean) {
+export function selectValidationMinimumExclusive(
+	node: Draft04Schema | boolean
+) {
 	if (typeof node === "object") {
 		if (node.exclusiveMinimum ?? false) {
 			return node.minimum;
@@ -321,7 +329,9 @@ export function selectValidationMinimumExclusive(node: Schema | boolean) {
 	}
 }
 
-export function selectValidationMaximumInclusive(node: Schema | boolean) {
+export function selectValidationMaximumInclusive(
+	node: Draft04Schema | boolean
+) {
 	if (typeof node === "object") {
 		if (node.exclusiveMaximum ?? false) {
 			return;
@@ -331,7 +341,9 @@ export function selectValidationMaximumInclusive(node: Schema | boolean) {
 	}
 }
 
-export function selectValidationMaximumExclusive(node: Schema | boolean) {
+export function selectValidationMaximumExclusive(
+	node: Draft04Schema | boolean
+) {
 	if (typeof node === "object") {
 		if (node.exclusiveMaximum ?? false) {
 			return node.maximum;
@@ -341,13 +353,13 @@ export function selectValidationMaximumExclusive(node: Schema | boolean) {
 	}
 }
 
-export function selectValidationMultipleOf(node: Schema | boolean) {
+export function selectValidationMultipleOf(node: Draft04Schema | boolean) {
 	if (typeof node === "object") {
 		return node.multipleOf;
 	}
 }
 
-export function selectValidationEnum(node: Schema | boolean) {
+export function selectValidationEnum(node: Draft04Schema | boolean) {
 	if (typeof node === "object") {
 		return node.enum;
 	}

@@ -66,11 +66,7 @@ async function main(options: MainOptions) {
 	const schemaUrl = new URL(options.schemaUrl);
 	const defaultMetaSchemaId = options.defaultMetaSchemaUrl;
 	const packageDirectoryPath = path.resolve(options.packageDirectory);
-	const {
-		packageName,
-		packageVersion,
-		rootNamePart: defaultTypeName,
-	} = options;
+	const { packageName, packageVersion, rootNamePart } = options;
 
 	const context = new SchemaContext();
 	context.registerStrategy(
@@ -98,7 +94,7 @@ async function main(options: MainOptions) {
 
 	const nodes = Object.fromEntries(context.getNodeEntries());
 
-	const namer = new Namer(options.rootNamePart);
+	const namer = new Namer(rootNamePart);
 	for (const nodeId in nodes) {
 		const nodeUrl = new URL(nodeId);
 		const path = nodeUrl.pathname + nodeUrl.hash.replace(/^#/g, "");

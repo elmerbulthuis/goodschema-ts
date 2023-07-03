@@ -1,5 +1,5 @@
 import ts from "typescript";
-import { CompoundUnion, TypeUnion } from "../schema/intermediate.js";
+import * as intermediate from "../schema/intermediate.js";
 import { CodeGeneratorBase } from "./code-generator-base.js";
 
 export class TypesTsCodeGenerator extends CodeGeneratorBase {
@@ -111,7 +111,9 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 		}
 	}
 
-	protected generateTypeDefinitionElement(type: TypeUnion): ts.TypeNode {
+	protected generateTypeDefinitionElement(
+		type: intermediate.TypeUnion
+	): ts.TypeNode {
 		switch (type.type) {
 			case "never":
 				return this.generateNeverTypeDefinition();
@@ -123,13 +125,13 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 				return this.generateNullTypeDefinition();
 
 			case "boolean":
-				return this.generateBooleanTypeDefinition();
+				return this.generateBooleanTypeDefinition(type.options);
 
 			case "number":
-				return this.generateNumberTypeDefinition();
+				return this.generateNumberTypeDefinition(type.options);
 
 			case "string":
-				return this.generateStringTypeDefinition();
+				return this.generateStringTypeDefinition(type.options);
 
 			case "tuple":
 				return this.generateTupleTypeDefinition(type.itemTypeNodeIds);
@@ -152,7 +154,7 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 	}
 
 	protected generateCompoundDefinitionElement(
-		compound: CompoundUnion
+		compound: intermediate.CompoundUnion
 	): ts.TypeNode {
 		switch (compound.type) {
 			case "one-of":
@@ -178,14 +180,44 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 	protected generateNullTypeDefinition(): ts.TypeNode {
 		return this.factory.createLiteralTypeNode(this.factory.createNull());
 	}
-	protected generateBooleanTypeDefinition(): ts.TypeNode {
-		return this.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword);
+	protected generateBooleanTypeDefinition(options?: boolean[]): ts.TypeNode {
+		if (options == null) {
+			return this.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword);
+		}
+
+		return this.factory.createUnionTypeNode(
+			options.map((option) =>
+				this.factory.createLiteralTypeNode(
+					option ? this.factory.createTrue() : this.factory.createFalse()
+				)
+			)
+		);
 	}
-	protected generateNumberTypeDefinition(): ts.TypeNode {
-		return this.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword);
+	protected generateNumberTypeDefinition(options?: number[]): ts.TypeNode {
+		if (options == null) {
+			return this.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword);
+		}
+
+		return this.factory.createUnionTypeNode(
+			options.map((option) =>
+				this.factory.createLiteralTypeNode(
+					this.factory.createNumericLiteral(option)
+				)
+			)
+		);
 	}
-	protected generateStringTypeDefinition(): ts.TypeNode {
-		return this.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword);
+	protected generateStringTypeDefinition(options?: string[]): ts.TypeNode {
+		if (options == null) {
+			return this.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword);
+		}
+
+		return this.factory.createUnionTypeNode(
+			options.map((option) =>
+				this.factory.createLiteralTypeNode(
+					this.factory.createStringLiteral(option)
+				)
+			)
+		);
 	}
 	protected generateTupleTypeDefinition(nodeIds: Array<string>): ts.TypeNode {
 		const elements = nodeIds.map((nodeId) =>

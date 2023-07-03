@@ -2,7 +2,7 @@ import {
 	Draft202012Schema,
 	isDraft202012Schema,
 } from "@jns42/jns42-schema-draft-2020-12";
-import * as intermediate from "../intermediate.js";
+import * as intermediate from "@jns42/jns42-schema-intermediate-a";
 import { SchemaStrategyBase } from "../strategy.js";
 import { metaSchemaId } from "./meta.js";
 import {

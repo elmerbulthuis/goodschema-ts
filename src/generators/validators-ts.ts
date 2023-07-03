@@ -1,6 +1,6 @@
+import * as intermediate from "@jns42/jns42-schema-intermediate-a";
 import camelcase from "camelcase";
 import ts from "typescript";
-import * as intermediate from "../schema/intermediate.js";
 import { CodeGeneratorBase } from "./code-generator-base.js";
 
 export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {

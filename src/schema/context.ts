@@ -1,5 +1,5 @@
+import * as intermediate from "@jns42/jns42-schema-intermediate-a";
 import * as fs from "fs";
-import * as intermediate from "./intermediate.js";
 import { SchemaStrategyBase, SchemaStrategyInterface } from "./strategy.js";
 
 export class SchemaContext implements SchemaStrategyInterface {

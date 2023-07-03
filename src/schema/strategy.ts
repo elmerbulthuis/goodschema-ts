@@ -1,6 +1,6 @@
+import * as intermediate from "@jns42/jns42-schema-intermediate-a";
 import assert from "assert";
 import { SchemaContext } from "./context.js";
-import * as intermediate from "./intermediate.js";
 
 export interface SchemaStrategyInterface {
 	getNodeEntries(): Iterable<[string, intermediate.SchemaJson]>;

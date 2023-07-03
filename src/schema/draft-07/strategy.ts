@@ -1,5 +1,5 @@
 import { Draft07Schema, isDraft07Schema } from "@jns42/jns42-schema-draft-07";
-import * as intermediate from "../intermediate.js";
+import * as intermediate from "@jns42/jns42-schema-intermediate-a";
 import { SchemaStrategyBase } from "../strategy.js";
 import { metaSchemaId } from "./meta.js";
 import {

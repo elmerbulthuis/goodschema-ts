@@ -1,7 +1,7 @@
+import * as intermediate from "@jns42/jns42-schema-intermediate-a";
 import fs from "node:fs";
 import path from "node:path";
 import ts from "typescript";
-import * as intermediate from "../schema/intermediate.js";
 import { formatData, formatStatements } from "../utils/index.js";
 import { MainSpecsTsCodeGenerator } from "./main-specs-ts.js";
 import { MainTsCodeGenerator } from "./main-ts.js";

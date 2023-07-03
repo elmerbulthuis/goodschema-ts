@@ -1,5 +1,5 @@
+import * as intermediate from "@jns42/jns42-schema-intermediate-a";
 import ts from "typescript";
-import * as intermediate from "../schema/intermediate.js";
 
 export abstract class CodeGeneratorBase {
 	constructor(

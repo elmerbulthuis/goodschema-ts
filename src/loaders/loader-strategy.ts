@@ -1,6 +1,6 @@
 import * as intermediate from "@jns42/jns42-schema-intermediate-a";
 import assert from "node:assert";
-import { GeneratorContext } from "./generator-context.js";
+import { LoaderContext } from "./loader-context.js";
 
 export interface RootNodeItem<N> {
 	node: N;
@@ -8,17 +8,17 @@ export interface RootNodeItem<N> {
 	referencingNodeUrl: URL | null;
 }
 
-export abstract class GeneratorStrategyBase<R, N> {
+export abstract class LoaderStrategyBase<R, N> {
 	protected abstract readonly metaSchemaId: string;
 
 	//#region context
 
-	private maybeContext?: GeneratorContext;
+	private maybeContext?: LoaderContext;
 	protected get context() {
 		assert(this.maybeContext != null);
 		return this.maybeContext;
 	}
-	public registerContext(context: GeneratorContext) {
+	public registerContext(context: LoaderContext) {
 		this.maybeContext = context;
 	}
 
@@ -30,7 +30,7 @@ export abstract class GeneratorStrategyBase<R, N> {
 	public abstract loadDependencies(
 		rootNode: R,
 		rootNodeUrl: URL,
-		retrievalUrl: URL
+		retrievalUrl: URL,
 	): Promise<void>;
 
 	public abstract makeRootNodeUrl(rootNode: R, nodeRootUrl: URL): URL;
@@ -40,7 +40,7 @@ export abstract class GeneratorStrategyBase<R, N> {
 	public async loadRootNode(
 		node: R,
 		nodeUrl: URL,
-		referencingNodeUrl: URL | null
+		referencingNodeUrl: URL | null,
 	) {
 		const nodeId = String(nodeUrl);
 

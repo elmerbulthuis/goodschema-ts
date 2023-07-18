@@ -18,7 +18,7 @@ export function generatePackage(
 	factory: ts.NodeFactory,
 	intermediateData: intermediate.SchemaJson,
 	namesData: Record<string, string>,
-	options: PackageOptions
+	options: PackageOptions,
 ) {
 	fs.mkdirSync(options.directoryPath, { recursive: true });
 
@@ -50,7 +50,7 @@ export function generatePackage(
 		const codeGenerator = new MainTsCodeGenerator(
 			factory,
 			namesData,
-			intermediateData.nodes
+			intermediateData.nodes,
 		);
 		const statements = codeGenerator.getStatements();
 		const filePath = path.join(options.directoryPath, "main.ts");
@@ -61,7 +61,7 @@ export function generatePackage(
 		const codeGenerator = new MainSpecsTsCodeGenerator(
 			factory,
 			namesData,
-			intermediateData.nodes
+			intermediateData.nodes,
 		);
 		const statements = codeGenerator.getStatements();
 		const filePath = path.join(options.directoryPath, "main.spec.ts");

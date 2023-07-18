@@ -3,7 +3,7 @@ import {
 	Core,
 	MetaData,
 	Validation,
-} from "@jns42/jns42-schema-draft-2020-12";
+} from "@jns42/jns42-schema-draft-2019-09";
 
 //#region core
 
@@ -25,9 +25,9 @@ export function selectNodeAnchor(node: Core) {
 	}
 }
 
-export function selectNodeDynamicAnchor(node: Core) {
+export function selectNodeRecursiveAnchor(node: Core) {
 	if (typeof node === "object") {
-		return node.$dynamicAnchor;
+		return node.$recursiveAnchor;
 	}
 }
 
@@ -37,15 +37,11 @@ export function selectNodeRef(node: Core) {
 	}
 }
 
-export function selectNodeDynamicRef(node: Core) {
+export function selectNodeRecursiveRef(node: Core) {
 	if (typeof node === "object") {
-		return node.$dynamicRef;
+		return node.$recursiveRef;
 	}
 }
-
-//#endregion
-
-//#region metadata
 
 export function selectNodeTitle(node: MetaData) {
 	if (typeof node === "object") {
@@ -86,7 +82,7 @@ export function* selectSubNodeDefEntries(nodePointer: string, node: Core) {
 
 export function* selectSubNodePropertyEntries(
 	nodePointer: string,
-	node: Applicator
+	node: Applicator,
 ) {
 	if (typeof node === "object" && node.properties != null) {
 		for (const [key, subNode] of Object.entries(node.properties)) {
@@ -98,46 +94,67 @@ export function* selectSubNodePropertyEntries(
 
 export function* selectSubNodeAdditionalPropertiesEntries(
 	nodePointer: string,
-	node: Applicator
+	node: Applicator,
 ) {
 	if (typeof node === "object" && node.additionalProperties != null) {
 		const subNode = node.additionalProperties;
 		const subNodePointer = appendJsonPointer(
 			nodePointer,
-			"additionalProperties"
+			"additionalProperties",
 		);
 		yield [subNodePointer, subNode] as const;
 	}
 }
 
-export function* selectSubNodePrefixItemsEntries(
+export function* selectSubNodeItemsOneEntries(
 	nodePointer: string,
-	node: Applicator
+	node: Applicator,
 ) {
-	if (typeof node === "object" && node.prefixItems != null) {
-		for (const [key, subNode] of Object.entries(node.prefixItems)) {
-			const subNodePointer = appendJsonPointer(nodePointer, "prefixItems", key);
-			yield [subNodePointer, subNode] as const;
-		}
-	}
-}
-
-export function* selectSubNodeItemsEntries(
-	nodePointer: string,
-	node: Applicator
-) {
-	if (typeof node === "object" && node.items != null) {
+	if (
+		typeof node === "object" &&
+		node.items != null &&
+		!Array.isArray(node.items)
+	) {
 		const subNode = node.items;
 		const subNodePointer = appendJsonPointer(nodePointer, "items");
 		yield [subNodePointer, subNode] as const;
 	}
 }
 
+export function* selectSubNodeItemsManyEntries(
+	nodePointer: string,
+	node: Applicator,
+) {
+	if (
+		typeof node === "object" &&
+		node.items != null &&
+		Array.isArray(node.items)
+	) {
+		for (const [key, subNode] of Object.entries(node.items)) {
+			if (subNode == null) continue;
+
+			const subNodePointer = appendJsonPointer(nodePointer, "items", key);
+			yield [subNodePointer, subNode] as const;
+		}
+	}
+}
+
+export function* selectSubNodeAdditionalItemsEntries(
+	nodePointer: string,
+	node: Applicator,
+) {
+	if (typeof node === "object" && node.additionalItems) {
+		const subNode = node.additionalItems;
+		const subNodePointer = appendJsonPointer(nodePointer, "additionalItems");
+		yield [subNodePointer, subNode] as const;
+	}
+}
+
 export function* selectSubNodeAnyOfEntries(
 	nodePointer: string,
-	node: Applicator
+	node: Applicator,
 ) {
-	if (typeof node === "object" && node.anyOf != null) {
+	if (typeof node === "object" && node.anyOf) {
 		for (const [key, subNode] of Object.entries(node.anyOf)) {
 			const subNodePointer = appendJsonPointer(nodePointer, "anyOf", key);
 			yield [subNodePointer, subNode] as const;
@@ -147,9 +164,9 @@ export function* selectSubNodeAnyOfEntries(
 
 export function* selectSubNodeOneOfEntries(
 	nodePointer: string,
-	node: Applicator
+	node: Applicator,
 ) {
-	if (typeof node === "object" && node.oneOf != null) {
+	if (typeof node === "object" && node.oneOf) {
 		for (const [key, subNode] of Object.entries(node.oneOf)) {
 			const subNodePointer = appendJsonPointer(nodePointer, "oneOf", key);
 			yield [subNodePointer, subNode] as const;
@@ -159,9 +176,9 @@ export function* selectSubNodeOneOfEntries(
 
 export function* selectSubNodeAllOfEntries(
 	nodePointer: string,
-	node: Applicator
+	node: Applicator,
 ) {
-	if (typeof node === "object" && node.allOf != null) {
+	if (typeof node === "object" && node.allOf) {
 		for (const [key, subNode] of Object.entries(node.allOf)) {
 			const subNodePointer = appendJsonPointer(nodePointer, "allOf", key);
 			yield [subNodePointer, subNode] as const;
@@ -171,13 +188,14 @@ export function* selectSubNodeAllOfEntries(
 
 export function* selectSubNodes(
 	nodePointer: string,
-	node: Applicator & Core
+	node: Applicator & Core,
 ): Iterable<readonly [string, Applicator & Core]> {
 	yield* selectSubNodeDefEntries(nodePointer, node);
 	yield* selectSubNodePropertyEntries(nodePointer, node);
 	yield* selectSubNodeAdditionalPropertiesEntries(nodePointer, node);
-	yield* selectSubNodePrefixItemsEntries(nodePointer, node);
-	yield* selectSubNodeItemsEntries(nodePointer, node);
+	yield* selectSubNodeItemsOneEntries(nodePointer, node);
+	yield* selectSubNodeItemsManyEntries(nodePointer, node);
+	yield* selectSubNodeAdditionalItemsEntries(nodePointer, node);
 	yield* selectSubNodeAllOfEntries(nodePointer, node);
 	yield* selectSubNodeAnyOfEntries(nodePointer, node);
 	yield* selectSubNodeOneOfEntries(nodePointer, node);
@@ -185,7 +203,7 @@ export function* selectSubNodes(
 
 export function* selectAllSubNodes(
 	nodePointer: string,
-	node: Applicator & Core
+	node: Applicator & Core,
 ): Iterable<readonly [string, Applicator & Core]> {
 	const subNodes = [...selectSubNodes(nodePointer, node)];
 	yield* subNodes;
@@ -196,7 +214,7 @@ export function* selectAllSubNodes(
 
 export function* selectAllSubNodesAndSelf(
 	nodePointer: string,
-	node: Applicator & Core
+	node: Applicator & Core,
 ): Iterable<readonly [string, Applicator & Core]> {
 	yield [nodePointer, node] as const;
 	yield* selectAllSubNodes(nodePointer, node);
@@ -224,14 +242,14 @@ export function* selectNodeRequiredPropertyNames(node: Validation) {
 
 export function* selectNodePropertyNamesEntries(
 	nodePointer: string,
-	node: Applicator
+	node: Applicator,
 ) {
 	if (typeof node === "object" && node.properties != null) {
 		for (const propertyName of Object.keys(node.properties)) {
 			const subNodePointer = appendJsonPointer(
 				nodePointer,
 				"properties",
-				propertyName
+				propertyName,
 			);
 			yield [subNodePointer, propertyName] as const;
 		}
@@ -268,7 +286,7 @@ export function selectValidationMinimumProperties(node: Validation) {
 
 export function selectValidationRequired(node: Validation) {
 	if (typeof node === "object") {
-		return node.required;
+		return node.required as string[];
 	}
 }
 

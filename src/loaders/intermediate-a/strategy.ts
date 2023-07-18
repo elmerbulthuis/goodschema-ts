@@ -1,8 +1,8 @@
 import * as intermediate from "@jns42/jns42-schema-intermediate-a";
-import { GeneratorStrategyBase } from "../generator-strategy.js";
+import { LoaderStrategyBase } from "../loader-strategy.js";
 import { metaSchemaId } from "./meta.js";
 
-export class GeneratorStrategy extends GeneratorStrategyBase<
+export class LoaderStrategy extends LoaderStrategyBase<
 	intermediate.SchemaJson,
 	intermediate.Node
 > {
@@ -17,14 +17,14 @@ export class GeneratorStrategy extends GeneratorStrategyBase<
 	public async loadDependencies(
 		rootNode: intermediate.SchemaJson,
 		rootNodeUrl: URL,
-		retrievalUrl: URL
+		retrievalUrl: URL,
 	): Promise<void> {
 		//
 	}
 
 	public makeRootNodeUrl(
 		rootNode: intermediate.SchemaJson,
-		nodeRootUrl: URL
+		nodeRootUrl: URL,
 	): URL {
 		return nodeRootUrl;
 	}

@@ -6,13 +6,13 @@ import path from "node:path";
 import test from "node:test";
 import ts from "typescript";
 import { generatePackage } from "../generators/index.js";
-import * as schemaDraft04 from "../strategies/draft-04/index.js";
-import * as schemaDraft06 from "../strategies/draft-06/index.js";
-import * as schemaDraft07 from "../strategies/draft-07/index.js";
-import * as schema201909 from "../strategies/draft-2019-09/index.js";
-import * as schema202012 from "../strategies/draft-2020-12/index.js";
-import { GeneratorContext } from "../strategies/index.js";
-import * as schemaIntermediateA from "../strategies/intermediate-a/index.js";
+import * as schemaDraft04 from "../loaders/draft-04/index.js";
+import * as schemaDraft06 from "../loaders/draft-06/index.js";
+import * as schemaDraft07 from "../loaders/draft-07/index.js";
+import * as schema201909 from "../loaders/draft-2019-09/index.js";
+import * as schema202012 from "../loaders/draft-2020-12/index.js";
+import { LoaderContext } from "../loaders/index.js";
+import * as schemaIntermediateA from "../loaders/intermediate-a/index.js";
 import { Namer, projectRoot } from "../utils/index.js";
 
 const packageNames = [
@@ -51,7 +51,7 @@ async function runTest(schemaName: string, packageName: string) {
 		".package",
 		"testing",
 		schemaName,
-		packageName
+		packageName,
 	);
 	const schemaPath = path.join(
 		projectRoot,
@@ -59,7 +59,7 @@ async function runTest(schemaName: string, packageName: string) {
 		"testing",
 		"schema",
 		schemaName,
-		`${packageName}.json`
+		`${packageName}.json`,
 	);
 	const schemaUrl = new URL(`file://${schemaPath}`);
 
@@ -68,37 +68,37 @@ async function runTest(schemaName: string, packageName: string) {
 	}
 
 	await test("generate package", async () => {
-		const context = new GeneratorContext();
+		const context = new LoaderContext();
 		context.registerStrategy(
 			schema202012.metaSchemaId,
-			new schema202012.GeneratorStrategy()
+			new schema202012.LoaderStrategy(),
 		);
 		context.registerStrategy(
 			schema201909.metaSchemaId,
-			new schema201909.GeneratorStrategy()
+			new schema201909.LoaderStrategy(),
 		);
 		context.registerStrategy(
 			schemaDraft07.metaSchemaId,
-			new schemaDraft07.GeneratorStrategy()
+			new schemaDraft07.LoaderStrategy(),
 		);
 		context.registerStrategy(
 			schemaDraft06.metaSchemaId,
-			new schemaDraft06.GeneratorStrategy()
+			new schemaDraft06.LoaderStrategy(),
 		);
 		context.registerStrategy(
 			schemaDraft04.metaSchemaId,
-			new schemaDraft04.GeneratorStrategy()
+			new schemaDraft04.LoaderStrategy(),
 		);
 		context.registerStrategy(
 			schemaIntermediateA.metaSchemaId,
-			new schemaIntermediateA.GeneratorStrategy()
+			new schemaIntermediateA.LoaderStrategy(),
 		);
 
 		await context.loadFromUrl(
 			schemaUrl,
 			schemaUrl,
 			null,
-			schema202012.metaSchemaId
+			schema202012.metaSchemaId,
 		);
 
 		const intermediateData = context.getIntermediateData();
@@ -141,7 +141,7 @@ async function runTest(schemaName: string, packageName: string) {
 		"fixtures",
 		"testing",
 		"valid",
-		packageName
+		packageName,
 	);
 	if (fs.existsSync(validDirectory)) {
 		await test("valid", async () => {
@@ -157,7 +157,7 @@ async function runTest(schemaName: string, packageName: string) {
 
 					const data = fs.readFileSync(
 						path.join(validDirectory, validFile),
-						"utf-8"
+						"utf-8",
 					);
 					const instance = JSON.parse(data);
 					assert.equal(packageMain[`is${rootTypeName}`](instance), true);
@@ -171,7 +171,7 @@ async function runTest(schemaName: string, packageName: string) {
 		"fixtures",
 		"testing",
 		"invalid",
-		packageName
+		packageName,
 	);
 	if (fs.existsSync(invalidDirectory)) {
 		await test("invalid", async () => {
@@ -187,7 +187,7 @@ async function runTest(schemaName: string, packageName: string) {
 
 					const data = fs.readFileSync(
 						path.join(invalidDirectory, invalidFile),
-						"utf-8"
+						"utf-8",
 					);
 					const instance = JSON.parse(data);
 					assert.equal(packageMain[`is${rootTypeName}`](instance), false);

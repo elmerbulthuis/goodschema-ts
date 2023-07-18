@@ -9,7 +9,7 @@ export class MainTsCodeGenerator extends CodeGeneratorBase {
 			const codeGenerator = new TypesTsCodeGenerator(
 				factory,
 				this.names,
-				this.nodes
+				this.nodes,
 			);
 			yield* codeGenerator.getStatements();
 		}
@@ -18,7 +18,7 @@ export class MainTsCodeGenerator extends CodeGeneratorBase {
 			const codeGenerator = new ValidatorsTsCodeGenerator(
 				factory,
 				this.names,
-				this.nodes
+				this.nodes,
 			);
 			yield* codeGenerator.getStatements();
 		}

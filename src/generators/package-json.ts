@@ -31,6 +31,6 @@ function withDependencies(names: string[]) {
 					packageInfo.dependencies?.[name] ??
 					packageInfo.devDependencies?.[name],
 			}),
-		{}
+		{},
 	);
 }

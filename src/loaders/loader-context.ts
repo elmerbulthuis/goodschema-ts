@@ -1,19 +1,18 @@
 import * as intermediate from "@jns42/jns42-schema-intermediate-a";
 import * as fs from "fs";
-import { GeneratorStrategyBase } from "./generator-strategy.js";
+import { LoaderStrategyBase } from "./loader-strategy.js";
 
-export class GeneratorContext {
+export class LoaderContext {
 	private readonly rootNodeMetaMap = new Map<string, string>();
 	private readonly nodeMetaMap = new Map<string, string>();
 	private readonly retrievalRootNodeMap = new Map<string, URL>();
 	private readonly rootNodeRetrievalMap = new Map<string, URL>();
 
-	private strategies: Record<string, GeneratorStrategyBase<unknown, unknown>> =
-		{};
+	private strategies: Record<string, LoaderStrategyBase<unknown, unknown>> = {};
 
 	public registerStrategy(
 		metaSchemaId: string,
-		strategy: GeneratorStrategyBase<unknown, unknown>
+		strategy: LoaderStrategyBase<unknown, unknown>,
 	) {
 		strategy.registerContext(this);
 		this.strategies[metaSchemaId] = strategy;
@@ -37,13 +36,12 @@ export class GeneratorContext {
 		rootNodeUrl: URL,
 		retrievalUrl: URL,
 		referencingUrl: URL | null,
-		defaultMetaSchemaId: string
+		defaultMetaSchemaId: string,
 	) {
 		const retrievalId = String(retrievalUrl);
 
-		const maybeRootNodeUrl = this.retrievalRootNodeMap.get(retrievalId);
-		if (maybeRootNodeUrl != null) {
-			return maybeRootNodeUrl;
+		if (this.retrievalRootNodeMap.has(retrievalId)) {
+			return;
 		}
 
 		const rootNode = await this.fetchJsonFromUrl(retrievalUrl);
@@ -53,10 +51,17 @@ export class GeneratorContext {
 
 		const strategy = this.strategies[metaSchemaId];
 
+		/*
+		is the node valid according to schema
+		*/
 		if (!strategy.isRootNode(rootNode)) {
 			throw new TypeError("invalid schema");
 		}
 
+		/*
+		there might be an $id on the root node, that would make the node url
+		different than the url we used to retrieve it
+		*/
 		rootNodeUrl = strategy.makeRootNodeUrl(rootNode, retrievalUrl);
 
 		const rootNodeId = String(rootNodeUrl);
@@ -71,10 +76,8 @@ export class GeneratorContext {
 			rootNode,
 			rootNodeUrl,
 			referencingUrl,
-			defaultMetaSchemaId
+			defaultMetaSchemaId,
 		);
-
-		return rootNodeUrl;
 	}
 
 	public getNodeRetrievalUrl(nodeRootId: string) {
@@ -89,7 +92,7 @@ export class GeneratorContext {
 		rootNode: unknown,
 		rootNodeUrl: URL,
 		referencingNodeUrl: URL | null,
-		defaultMetaSchemaId: string
+		defaultMetaSchemaId: string,
 	) {
 		const metaSchemaId =
 			this.discoverMetaSchemaId(rootNode) ?? defaultMetaSchemaId;

@@ -1,4 +1,4 @@
-import { GeneratorStrategyBase } from "./generator-strategy.js";
+import { LoaderStrategyBase } from "./loader-strategy.js";
 
 export interface NodeItem<N> {
 	node: N;
@@ -6,7 +6,7 @@ export interface NodeItem<N> {
 	nodePointer: string;
 }
 
-export abstract class SchemaStrategyBase<N> extends GeneratorStrategyBase<
+export abstract class SchemaLoaderStrategyBase<N> extends LoaderStrategyBase<
 	N,
 	N
 > {
@@ -19,13 +19,13 @@ export abstract class SchemaStrategyBase<N> extends GeneratorStrategyBase<
 	public abstract makeNodeUrl(
 		node: N,
 		nodeRootUrl: URL,
-		nodePointer: string
+		nodePointer: string,
 	): URL;
 
 	public async loadDependencies(
 		rootNode: N,
 		rootNodeUrl: URL,
-		retrievalUrl: URL
+		retrievalUrl: URL,
 	) {
 		for (const [
 			subNodeUrl,
@@ -33,13 +33,13 @@ export abstract class SchemaStrategyBase<N> extends GeneratorStrategyBase<
 		] of this.selectAllReferencedNodeUrls(
 			rootNode,
 			rootNodeUrl,
-			retrievalUrl
+			retrievalUrl,
 		)) {
 			await this.context.loadFromUrl(
 				subNodeUrl,
 				subRetrievalUrl,
 				rootNodeUrl,
-				this.metaSchemaId
+				this.metaSchemaId,
 			);
 		}
 	}
@@ -50,7 +50,7 @@ export abstract class SchemaStrategyBase<N> extends GeneratorStrategyBase<
 
 		for (const [subPointer, subNode] of this.selectAllSubNodeEntriesAndSelf(
 			"",
-			rootItem.node
+			rootItem.node,
 		)) {
 			yield* this.indexNode(subNode, rootNodeUrl, subPointer);
 		}
@@ -76,13 +76,13 @@ export abstract class SchemaStrategyBase<N> extends GeneratorStrategyBase<
 
 	protected abstract selectAllSubNodeEntriesAndSelf(
 		nodePointer: string,
-		node: N
+		node: N,
 	): Iterable<readonly [string, N]>;
 
 	protected abstract selectAllReferencedNodeUrls(
 		rootNode: N,
 		rootNodeUrl: URL,
-		retrievalUrl: URL
+		retrievalUrl: URL,
 	): Iterable<readonly [URL, URL]>;
 	protected selectRootNodeEntries(): Iterable<[URL, N]> {
 		return [...this.getRootNodeItems()].map(({ nodeUrl, node }) => [

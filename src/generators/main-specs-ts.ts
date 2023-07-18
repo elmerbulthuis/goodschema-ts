@@ -9,13 +9,13 @@ export class MainSpecsTsCodeGenerator extends CodeGeneratorBase {
 		yield f.createImportDeclaration(
 			undefined,
 			f.createImportClause(false, f.createIdentifier("assert"), undefined),
-			f.createStringLiteral("node:assert/strict")
+			f.createStringLiteral("node:assert/strict"),
 		);
 
 		yield f.createImportDeclaration(
 			undefined,
 			f.createImportClause(false, f.createIdentifier("test"), undefined),
-			f.createStringLiteral("node:test")
+			f.createStringLiteral("node:test"),
 		);
 
 		yield f.createImportDeclaration(
@@ -23,9 +23,9 @@ export class MainSpecsTsCodeGenerator extends CodeGeneratorBase {
 			f.createImportClause(
 				false,
 				undefined,
-				f.createNamespaceImport(f.createIdentifier("main"))
+				f.createNamespaceImport(f.createIdentifier("main")),
 			),
-			f.createStringLiteral("./main.js")
+			f.createStringLiteral("./main.js"),
 		);
 
 		for (const nodeId in this.nodes) {
@@ -55,14 +55,14 @@ export class MainSpecsTsCodeGenerator extends CodeGeneratorBase {
 							f.createIdentifier("t"),
 							undefined,
 							undefined,
-							undefined
+							undefined,
 						),
 					],
 					undefined,
 					f.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-					f.createBlock(assertStatements, true)
+					f.createBlock(assertStatements, true),
 				),
-			])
+			]),
 		);
 	}
 
@@ -77,21 +77,21 @@ export class MainSpecsTsCodeGenerator extends CodeGeneratorBase {
 				f.createCallExpression(
 					f.createPropertyAccessExpression(
 						f.createIdentifier("assert"),
-						f.createIdentifier("equal")
+						f.createIdentifier("equal"),
 					),
 					undefined,
 					[
 						f.createCallExpression(
 							f.createPropertyAccessExpression(
 								f.createIdentifier("main"),
-								f.createIdentifier(`is${typeName}`)
+								f.createIdentifier(`is${typeName}`),
 							),
 							undefined,
-							[generateLiteral(f, example)]
+							[generateLiteral(f, example)],
 						),
 						f.createTrue(),
-					]
-				)
+					],
+				),
 			);
 		}
 	}

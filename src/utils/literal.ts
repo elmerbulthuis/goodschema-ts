@@ -2,35 +2,35 @@ import ts from "typescript";
 
 export function generateLiteral(
 	factory: ts.NodeFactory,
-	value: null
+	value: null,
 ): ts.NullLiteral;
 export function generateLiteral(
 	factory: ts.NodeFactory,
-	value: true
+	value: true,
 ): ts.TrueLiteral;
 export function generateLiteral(
 	factory: ts.NodeFactory,
-	value: false
+	value: false,
 ): ts.FalseLiteral;
 export function generateLiteral(
 	factory: ts.NodeFactory,
-	value: string
+	value: string,
 ): ts.StringLiteral;
 export function generateLiteral(
 	factory: ts.NodeFactory,
-	value: number
+	value: number,
 ): ts.NumericLiteral;
 export function generateLiteral(
 	factory: ts.NodeFactory,
-	value: object
+	value: object,
 ): ts.ObjectLiteralExpression;
 export function generateLiteral(
 	factory: ts.NodeFactory,
-	value: Array<unknown>
+	value: Array<unknown>,
 ): ts.ArrayLiteralExpression;
 export function generateLiteral(
 	factory: ts.NodeFactory,
-	value: unknown
+	value: unknown,
 ):
 	| ts.NullLiteral
 	| ts.BooleanLiteral
@@ -39,23 +39,23 @@ export function generateLiteral(
 	| ts.ArrayLiteralExpression;
 export function generateLiteral(
 	factory: ts.NodeFactory,
-	value: unknown
+	value: unknown,
 ): ts.Expression {
 	if (value != null && typeof value === "object") {
 		if (Array.isArray(value))
 			return factory.createArrayLiteralExpression(
 				value.map((value) => generateLiteral(factory, value)),
-				true
+				true,
 			);
 
 		return factory.createObjectLiteralExpression(
 			Object.entries(value).map(([key, value]) =>
 				factory.createPropertyAssignment(
 					factory.createStringLiteral(key),
-					generateLiteral(factory, value)
-				)
+					generateLiteral(factory, value),
+				),
 			),
-			true
+			true,
 		);
 	}
 
@@ -64,31 +64,31 @@ export function generateLiteral(
 
 export function generatePrimitiveLiteral(
 	factory: ts.NodeFactory,
-	value: null
+	value: null,
 ): ts.NullLiteral;
 export function generatePrimitiveLiteral(
 	factory: ts.NodeFactory,
-	value: true
+	value: true,
 ): ts.TrueLiteral;
 export function generatePrimitiveLiteral(
 	factory: ts.NodeFactory,
-	value: false
+	value: false,
 ): ts.FalseLiteral;
 export function generatePrimitiveLiteral(
 	factory: ts.NodeFactory,
-	value: string
+	value: string,
 ): ts.StringLiteral;
 export function generatePrimitiveLiteral(
 	factory: ts.NodeFactory,
-	value: number
+	value: number,
 ): ts.NumericLiteral;
 export function generatePrimitiveLiteral(
 	factory: ts.NodeFactory,
-	value: unknown
+	value: unknown,
 ): ts.NullLiteral | ts.BooleanLiteral | ts.LiteralExpression;
 export function generatePrimitiveLiteral(
 	factory: ts.NodeFactory,
-	value: unknown
+	value: unknown,
 ): ts.Expression {
 	if (value === null) return factory.createNull();
 

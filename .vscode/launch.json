@@ -20,7 +20,7 @@
 			"program": "${workspaceFolder}/src/program.ts",
 			"args": [
 				"package",
-				"file://${file}",
+				"${file}",
 				"--package-directory",
 				".package/file",
 				"--package-name",
@@ -40,7 +40,7 @@
 			"program": "${workspaceFolder}/src/program.ts",
 			"args": [
 				"package",
-				"file://${workspaceFolder}/fixtures/schema/draft-2020-12/schema",
+				"fixtures/schema/draft-2020-12/schema",
 				"--package-directory",
 				".package/schema/draft-2020-12",
 				"--package-name",
@@ -60,7 +60,7 @@
 			"program": "${workspaceFolder}/src/program.ts",
 			"args": [
 				"package",
-				"file://${workspaceFolder}/fixtures/schema/draft-2019-09/schema",
+				"fixtures/schema/draft-2019-09/schema",
 				"--package-directory",
 				".package/schema/draft-2019-09",
 				"--package-name",
@@ -80,7 +80,7 @@
 			"program": "${workspaceFolder}/src/program.ts",
 			"args": [
 				"package",
-				"file://${workspaceFolder}/fixtures/schema/draft-07/schema",
+				"fixtures/schema/draft-07/schema",
 				"--package-directory",
 				".package/schema/draft-07",
 				"--package-name",
@@ -100,7 +100,7 @@
 			"program": "${workspaceFolder}/src/program.ts",
 			"args": [
 				"package",
-				"file://${workspaceFolder}/fixtures/schema/draft-06/schema",
+				"fixtures/schema/draft-06/schema",
 				"--package-directory",
 				".package/schema/draft-06",
 				"--package-name",
@@ -120,7 +120,7 @@
 			"program": "${workspaceFolder}/src/program.ts",
 			"args": [
 				"package",
-				"file://${workspaceFolder}/fixtures/schema/draft-04/schema",
+				"fixtures/schema/draft-04/schema",
 				"--package-directory",
 				".package/schema/draft-04",
 				"--package-name",

@@ -2,22 +2,22 @@ import * as path from "node:path";
 import ts from "typescript";
 import * as yargs from "yargs";
 import { generatePackage } from "../generators/index.js";
-import * as schemaDraft04 from "../strategies/draft-04/index.js";
-import * as schemaDraft06 from "../strategies/draft-06/index.js";
-import * as schemaDraft07 from "../strategies/draft-07/index.js";
-import * as schema201909 from "../strategies/draft-2019-09/index.js";
-import * as schema202012 from "../strategies/draft-2020-12/index.js";
-import { GeneratorContext } from "../strategies/index.js";
-import * as schemaIntermediateA from "../strategies/intermediate-a/index.js";
+import * as schemaDraft04 from "../loaders/draft-04/index.js";
+import * as schemaDraft06 from "../loaders/draft-06/index.js";
+import * as schemaDraft07 from "../loaders/draft-07/index.js";
+import * as schema201909 from "../loaders/draft-2019-09/index.js";
+import * as schema202012 from "../loaders/draft-2020-12/index.js";
+import { LoaderContext } from "../loaders/index.js";
+import * as schemaIntermediateA from "../loaders/intermediate-a/index.js";
 import { Namer } from "../utils/index.js";
 
 export function configurePackageProgram(argv: yargs.Argv) {
 	return argv.command(
-		"package [schema-url]",
-		"create package from schema-url",
+		"package [instance-schema-url]",
+		"create package from instance-schema-url",
 		(yargs) =>
 			yargs
-				.positional("schema-url", {
+				.positional("instance-schema-url", {
 					description: "url to download schema from",
 					type: "string",
 				})
@@ -51,12 +51,12 @@ export function configurePackageProgram(argv: yargs.Argv) {
 					type: "string",
 					default: "schema",
 				}),
-		(argv) => main(argv as MainOptions)
+		(argv) => main(argv as MainOptions),
 	);
 }
 
 interface MainOptions {
-	schemaUrl: string;
+	instanceSchemaUrl: string;
 	defaultMetaSchemaUrl: string;
 	packageDirectory: string;
 	packageName: string;
@@ -65,38 +65,51 @@ interface MainOptions {
 }
 
 async function main(options: MainOptions) {
-	const schemaUrl = new URL(options.schemaUrl);
+	let instanceSchemaUrl: URL;
+	if (/^\w+\:\/\//.test(options.instanceSchemaUrl)) {
+		instanceSchemaUrl = new URL(options.instanceSchemaUrl);
+	} else {
+		instanceSchemaUrl = new URL(
+			"file://" + path.join(process.cwd(), options.instanceSchemaUrl),
+		);
+	}
+
 	const defaultMetaSchemaId = options.defaultMetaSchemaUrl;
 	const packageDirectoryPath = path.resolve(options.packageDirectory);
 	const { packageName, packageVersion, rootNamePart } = options;
 
-	const context = new GeneratorContext();
+	const context = new LoaderContext();
 	context.registerStrategy(
 		schema202012.metaSchemaId,
-		new schema202012.GeneratorStrategy()
+		new schema202012.LoaderStrategy(),
 	);
 	context.registerStrategy(
 		schema201909.metaSchemaId,
-		new schema201909.GeneratorStrategy()
+		new schema201909.LoaderStrategy(),
 	);
 	context.registerStrategy(
 		schemaDraft07.metaSchemaId,
-		new schemaDraft07.GeneratorStrategy()
+		new schemaDraft07.LoaderStrategy(),
 	);
 	context.registerStrategy(
 		schemaDraft06.metaSchemaId,
-		new schemaDraft06.GeneratorStrategy()
+		new schemaDraft06.LoaderStrategy(),
 	);
 	context.registerStrategy(
 		schemaDraft04.metaSchemaId,
-		new schemaDraft04.GeneratorStrategy()
+		new schemaDraft04.LoaderStrategy(),
 	);
 	context.registerStrategy(
 		schemaIntermediateA.metaSchemaId,
-		new schemaIntermediateA.GeneratorStrategy()
+		new schemaIntermediateA.LoaderStrategy(),
 	);
 
-	await context.loadFromUrl(schemaUrl, schemaUrl, null, defaultMetaSchemaId);
+	await context.loadFromUrl(
+		instanceSchemaUrl,
+		instanceSchemaUrl,
+		null,
+		defaultMetaSchemaId,
+	);
 
 	const intermediateData = context.getIntermediateData();
 
@@ -107,10 +120,10 @@ async function main(options: MainOptions) {
 		namer.registerPath(nodeId, path);
 	}
 
-	const names = namer.getNames();
+	const namesData = namer.getNames();
 
 	const factory = ts.factory;
-	generatePackage(factory, intermediateData, names, {
+	generatePackage(factory, intermediateData, namesData, {
 		directoryPath: packageDirectoryPath,
 		name: packageName,
 		version: packageVersion,

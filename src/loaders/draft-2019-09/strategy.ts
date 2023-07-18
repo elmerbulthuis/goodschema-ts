@@ -3,7 +3,7 @@ import {
 	isDraft201909Schema,
 } from "@jns42/jns42-schema-draft-2019-09";
 import * as intermediate from "@jns42/jns42-schema-intermediate-a";
-import { SchemaStrategyBase } from "../schema-strategy.js";
+import { SchemaLoaderStrategyBase } from "../schema-loader-strategy.js";
 import { metaSchemaId } from "./meta.js";
 import {
 	selectAllSubNodesAndSelf,
@@ -43,7 +43,7 @@ import {
 	selectValidationValuePattern,
 } from "./selectors.js";
 
-export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
+export class LoaderStrategy extends SchemaLoaderStrategyBase<Draft201909Schema> {
 	//#region super implementation
 
 	protected readonly metaSchemaId = metaSchemaId;
@@ -55,7 +55,7 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 	public *selectAllReferencedNodeUrls(
 		rootNode: Draft201909Schema,
 		rootNodeUrl: URL,
-		retrievalUrl: URL
+		retrievalUrl: URL,
 	): Iterable<readonly [URL, URL]> {
 		for (const [pointer, node] of selectAllSubNodesAndSelf("", rootNode)) {
 			const nodeRef = selectNodeRef(node);
@@ -82,7 +82,7 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 	public makeNodeUrl(
 		node: Draft201909Schema,
 		nodeRootUrl: URL,
-		nodePointer: string
+		nodePointer: string,
 	): URL {
 		let nodeUrl = this.selectNodeUrl(node);
 		if (nodeUrl != null) {
@@ -95,7 +95,7 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 
 	public selectAllSubNodeEntriesAndSelf(
 		nodePointer: string,
-		node: Draft201909Schema
+		node: Draft201909Schema,
 	): Iterable<readonly [string, Draft201909Schema]> {
 		return selectAllSubNodesAndSelf(nodePointer, node);
 	}
@@ -103,7 +103,7 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 	protected async loadFromNode(
 		node: Draft201909Schema,
 		nodeUrl: URL,
-		retrievalUrl: URL
+		retrievalUrl: URL,
 	) {
 		const nodeRef = selectNodeRef(node);
 
@@ -115,7 +115,7 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 				nodeRefUrl,
 				retrievalRefUrl,
 				nodeUrl,
-				this.metaSchemaId
+				this.metaSchemaId,
 			);
 		}
 	}
@@ -145,7 +145,7 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 			if (nodeRecursiveRef != null) {
 				const resolvedNodeId = this.resolveRecursiveReferenceNodeId(
 					nodeId,
-					nodeRecursiveRef
+					nodeRecursiveRef,
 				);
 
 				superNodeId = resolvedNodeId;
@@ -212,7 +212,7 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 						yield* this.makeNodeTypeFromArray(
 							nodeItem.node,
 							nodeItem.nodeRootUrl,
-							nodeItem.nodePointer
+							nodeItem.nodePointer,
 						);
 						break;
 
@@ -220,7 +220,7 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 						yield* this.makeNodeTypeFromObject(
 							nodeItem.node,
 							nodeItem.nodeRootUrl,
-							nodeItem.nodePointer
+							nodeItem.nodePointer,
 						);
 						break;
 				}
@@ -229,24 +229,24 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 	}
 
 	private *selectNodeCompounds(
-		nodeId: string
+		nodeId: string,
 	): Iterable<intermediate.CompoundUnion> {
 		const nodeItem = this.getNodeItem(nodeId);
 
 		yield* this.makeNodeCompoundFromAllOf(
 			nodeItem.node,
 			nodeItem.nodeRootUrl,
-			nodeItem.nodePointer
+			nodeItem.nodePointer,
 		);
 		yield* this.makeNodeCompoundFromAnyOf(
 			nodeItem.node,
 			nodeItem.nodeRootUrl,
-			nodeItem.nodePointer
+			nodeItem.nodePointer,
 		);
 		yield* this.makeNodeCompoundFromOneOf(
 			nodeItem.node,
 			nodeItem.nodeRootUrl,
-			nodeItem.nodePointer
+			nodeItem.nodePointer,
 		);
 	}
 
@@ -257,7 +257,7 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 	}
 
 	private *makeNodeTypeFromBoolean(
-		node: Draft201909Schema
+		node: Draft201909Schema,
 	): Iterable<intermediate.TypeUnion> {
 		const enumValues = selectNodeEnum(node);
 		const constValue = selectNodeConst(node);
@@ -278,7 +278,7 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 
 	private *makeNodeTypeFromNumber(
 		node: Draft201909Schema,
-		numberType: "integer" | "float"
+		numberType: "integer" | "float",
 	): Iterable<intermediate.TypeUnion> {
 		const enumValues = selectNodeEnum(node);
 		const constValue = selectNodeConst(node);
@@ -310,7 +310,7 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 	}
 
 	private *makeNodeTypeFromString(
-		node: Draft201909Schema
+		node: Draft201909Schema,
 	): Iterable<intermediate.TypeUnion> {
 		const enumValues = selectNodeEnum(node);
 		const constValue = selectNodeConst(node);
@@ -339,7 +339,7 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 	private *makeNodeTypeFromArray(
 		node: Draft201909Schema,
 		nodeRootUrl: URL,
-		nodePointer: string
+		nodePointer: string,
 	): Iterable<intermediate.TypeUnion> {
 		const itemsOne = [...selectSubNodeItemsOneEntries(nodePointer, node)];
 		const itemsMany = [...selectSubNodeItemsManyEntries(nodePointer, node)];
@@ -399,7 +399,7 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 	private *makeNodeTypeFromObject(
 		node: Draft201909Schema,
 		nodeRootUrl: URL,
-		nodePointer: string
+		nodePointer: string,
 	): Iterable<intermediate.TypeUnion> {
 		const propertyNames = [
 			...selectNodePropertyNamesEntries(nodePointer, node),
@@ -417,11 +417,11 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 				propertyNames.map(([propertyNodePointer, propertyName]) => {
 					const propertyNodeUrl = new URL(
 						`#${propertyNodePointer}`,
-						nodeRootUrl
+						nodeRootUrl,
 					);
 					const propertyNodeId = String(propertyNodeUrl);
 					return [propertyName, propertyNodeId];
-				})
+				}),
 			);
 
 			yield {
@@ -436,11 +436,11 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 				([propertyNodePointer]) => {
 					const propertyNodeUrl = new URL(
 						`#${propertyNodePointer}`,
-						nodeRootUrl
+						nodeRootUrl,
 					);
 					const propertyNodeId = String(propertyNodeUrl);
 					return propertyNodeId;
-				}
+				},
 			);
 
 			for (const propertyTypeNodeId of propertyTypeNodeIds) {
@@ -458,7 +458,7 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 	private *makeNodeCompoundFromAllOf(
 		node: Draft201909Schema,
 		nodeRootUrl: URL,
-		nodePointer: string
+		nodePointer: string,
 	): Iterable<intermediate.CompoundUnion> {
 		const allOf = [...selectSubNodeAllOfEntries(nodePointer, node)];
 		if (allOf.length > 0) {
@@ -478,7 +478,7 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 	private *makeNodeCompoundFromAnyOf(
 		node: Draft201909Schema,
 		nodeRootUrl: URL,
-		nodePointer: string
+		nodePointer: string,
 	): Iterable<intermediate.CompoundUnion> {
 		const allOf = [...selectSubNodeAnyOfEntries(nodePointer, node)];
 		if (allOf.length > 0) {
@@ -498,7 +498,7 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 	private *makeNodeCompoundFromOneOf(
 		node: Draft201909Schema,
 		nodeRootUrl: URL,
-		nodePointer: string
+		nodePointer: string,
 	): Iterable<intermediate.CompoundUnion> {
 		const allOf = [...selectSubNodeOneOfEntries(nodePointer, node)];
 		if (allOf.length > 0) {
@@ -537,7 +537,7 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 	protected *indexNode(
 		node: Draft201909Schema,
 		nodeRootUrl: URL,
-		nodePointer: string
+		nodePointer: string,
 	) {
 		const nodeUrl = this.makeNodeUrl(node, nodeRootUrl, nodePointer);
 		const nodeId = String(nodeUrl);
@@ -592,7 +592,7 @@ export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 
 	private resolveRecursiveReferenceNodeId(
 		nodeId: string,
-		nodeRecursiveRef: string
+		nodeRecursiveRef: string,
 	) {
 		const nodeItem = this.getNodeItem(nodeId);
 

@@ -19,7 +19,7 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 			[this.factory.createToken(ts.SyntaxKind.ExportKeyword)],
 			typeName,
 			undefined,
-			typeDefinition
+			typeDefinition,
 		);
 
 		const comments = [
@@ -37,7 +37,7 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 				declaration,
 				ts.SyntaxKind.MultiLineCommentTrivia,
 				"*\n" + comments,
-				true
+				true,
 			);
 		}
 
@@ -54,24 +54,24 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 		let typeDefinitionNode: ts.TypeNode | undefined;
 		if (compoundNodes.length > 0) {
 			const typeNode = f.createParenthesizedType(
-				f.createIntersectionTypeNode(compoundNodes)
+				f.createIntersectionTypeNode(compoundNodes),
 			);
 			typeDefinitionNode =
 				typeDefinitionNode == null
 					? typeNode
 					: f.createParenthesizedType(
-							f.createIntersectionTypeNode([typeDefinitionNode, typeNode])
+							f.createIntersectionTypeNode([typeDefinitionNode, typeNode]),
 					  );
 		}
 		if (typeNodes.length > 0) {
 			const typeNode = f.createParenthesizedType(
-				f.createUnionTypeNode(typeNodes)
+				f.createUnionTypeNode(typeNodes),
 			);
 			typeDefinitionNode =
 				typeDefinitionNode == null
 					? typeNode
 					: f.createParenthesizedType(
-							f.createIntersectionTypeNode([typeDefinitionNode, typeNode])
+							f.createIntersectionTypeNode([typeDefinitionNode, typeNode]),
 					  );
 		}
 		if (node.superNodeId != null) {
@@ -80,13 +80,13 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 				typeDefinitionNode == null
 					? typeNode
 					: f.createParenthesizedType(
-							f.createIntersectionTypeNode([typeDefinitionNode, typeNode])
+							f.createIntersectionTypeNode([typeDefinitionNode, typeNode]),
 					  );
 		}
 
 		if (typeDefinitionNode == null) {
 			typeDefinitionNode = f.createKeywordTypeNode(
-				ts.SyntaxKind.UnknownKeyword
+				ts.SyntaxKind.UnknownKeyword,
 			);
 		}
 
@@ -94,7 +94,7 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 	}
 
 	protected *generateCompoundDefinitionElements(
-		nodeId: string
+		nodeId: string,
 	): Iterable<ts.TypeNode> {
 		const node = this.nodes[nodeId];
 		for (const compound of node.compounds) {
@@ -103,7 +103,7 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 	}
 
 	protected *generateTypeDefinitionElements(
-		nodeId: string
+		nodeId: string,
 	): Iterable<ts.TypeNode> {
 		const node = this.nodes[nodeId];
 		for (const type of node.types) {
@@ -112,7 +112,7 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 	}
 
 	protected generateTypeDefinitionElement(
-		type: intermediate.TypeUnion
+		type: intermediate.TypeUnion,
 	): ts.TypeNode {
 		switch (type.type) {
 			case "never":
@@ -142,7 +142,7 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 			case "interface":
 				return this.generateInterfaceTypeDefinition(
 					type.propertyTypeNodeIds,
-					new Set(type.requiredProperties)
+					new Set(type.requiredProperties),
 				);
 
 			case "record":
@@ -154,7 +154,7 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 	}
 
 	protected generateCompoundDefinitionElement(
-		compound: intermediate.CompoundUnion
+		compound: intermediate.CompoundUnion,
 	): ts.TypeNode {
 		switch (compound.type) {
 			case "one-of":
@@ -188,9 +188,9 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 		return this.factory.createUnionTypeNode(
 			options.map((option) =>
 				this.factory.createLiteralTypeNode(
-					option ? this.factory.createTrue() : this.factory.createFalse()
-				)
-			)
+					option ? this.factory.createTrue() : this.factory.createFalse(),
+				),
+			),
 		);
 	}
 	protected generateNumberTypeDefinition(options?: number[]): ts.TypeNode {
@@ -201,9 +201,9 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 		return this.factory.createUnionTypeNode(
 			options.map((option) =>
 				this.factory.createLiteralTypeNode(
-					this.factory.createNumericLiteral(option)
-				)
-			)
+					this.factory.createNumericLiteral(option),
+				),
+			),
 		);
 	}
 	protected generateStringTypeDefinition(options?: string[]): ts.TypeNode {
@@ -214,14 +214,14 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 		return this.factory.createUnionTypeNode(
 			options.map((option) =>
 				this.factory.createLiteralTypeNode(
-					this.factory.createStringLiteral(option)
-				)
-			)
+					this.factory.createStringLiteral(option),
+				),
+			),
 		);
 	}
 	protected generateTupleTypeDefinition(nodeIds: Array<string>): ts.TypeNode {
 		const elements = nodeIds.map((nodeId) =>
-			this.generateTypeReference(nodeId)
+			this.generateTypeReference(nodeId),
 		);
 		return this.factory.createTupleTypeNode(elements);
 	}
@@ -231,7 +231,7 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 	}
 	protected generateInterfaceTypeDefinition(
 		nodeIds: Record<string, string>,
-		required: Set<string>
+		required: Set<string>,
 	): ts.TypeNode {
 		const members = Object.entries(nodeIds).map(([name, nodeId]) =>
 			this.factory.createPropertySignature(
@@ -240,8 +240,8 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 				required.has(name)
 					? undefined
 					: this.factory.createToken(ts.SyntaxKind.QuestionToken),
-				this.generateTypeReference(nodeId)
-			)
+				this.generateTypeReference(nodeId),
+			),
 		);
 		return this.factory.createTypeLiteralNode(members);
 	}
@@ -249,7 +249,10 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 		const element = this.generateTypeReference(nodeId);
 		return this.factory.createTypeReferenceNode(
 			this.factory.createIdentifier("Record"),
-			[this.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword), element]
+			[
+				this.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+				element,
+			],
 		);
 	}
 	protected generateOneOfCompoundDefinition(nodeIds: Array<string>) {
@@ -260,7 +263,7 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 		const types = nodeIds
 			.map((nodeId) => this.generateTypeReference(nodeId))
 			.map((typeNode) =>
-				this.factory.createTypeReferenceNode("Partial", [typeNode])
+				this.factory.createTypeReferenceNode("Partial", [typeNode]),
 			);
 		return this.factory.createIntersectionTypeNode(types);
 	}

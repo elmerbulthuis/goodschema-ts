@@ -6,12 +6,13 @@ import path from "node:path";
 import test from "node:test";
 import ts from "typescript";
 import { generatePackage } from "../generators/index.js";
-import * as schemaDraft04 from "../schema/draft-04/index.js";
-import * as schemaDraft06 from "../schema/draft-06/index.js";
-import * as schemaDraft07 from "../schema/draft-07/index.js";
-import * as schema201909 from "../schema/draft-2019-09/index.js";
-import * as schema202012 from "../schema/draft-2020-12/index.js";
-import { SchemaContext } from "../schema/index.js";
+import * as schemaDraft04 from "../strategies/draft-04/index.js";
+import * as schemaDraft06 from "../strategies/draft-06/index.js";
+import * as schemaDraft07 from "../strategies/draft-07/index.js";
+import * as schema201909 from "../strategies/draft-2019-09/index.js";
+import * as schema202012 from "../strategies/draft-2020-12/index.js";
+import { GeneratorContext } from "../strategies/index.js";
+import * as schemaIntermediateA from "../strategies/intermediate-a/index.js";
 import { Namer, projectRoot } from "../utils/index.js";
 
 const packageNames = [
@@ -24,6 +25,7 @@ const packageNames = [
 ];
 
 const schemaNames = [
+	"jns42-intermediate-a",
 	"draft-2020-12",
 	"draft-2019-09",
 	"draft-07",
@@ -66,26 +68,30 @@ async function runTest(schemaName: string, packageName: string) {
 	}
 
 	await test("generate package", async () => {
-		const context = new SchemaContext();
+		const context = new GeneratorContext();
 		context.registerStrategy(
 			schema202012.metaSchemaId,
-			new schema202012.SchemaStrategy()
+			new schema202012.GeneratorStrategy()
 		);
 		context.registerStrategy(
 			schema201909.metaSchemaId,
-			new schema201909.SchemaStrategy()
+			new schema201909.GeneratorStrategy()
 		);
 		context.registerStrategy(
 			schemaDraft07.metaSchemaId,
-			new schemaDraft07.SchemaStrategy()
+			new schemaDraft07.GeneratorStrategy()
 		);
 		context.registerStrategy(
 			schemaDraft06.metaSchemaId,
-			new schemaDraft06.SchemaStrategy()
+			new schemaDraft06.GeneratorStrategy()
 		);
 		context.registerStrategy(
 			schemaDraft04.metaSchemaId,
-			new schemaDraft04.SchemaStrategy()
+			new schemaDraft04.GeneratorStrategy()
+		);
+		context.registerStrategy(
+			schemaIntermediateA.metaSchemaId,
+			new schemaIntermediateA.GeneratorStrategy()
 		);
 
 		await context.loadFromUrl(
@@ -107,7 +113,7 @@ async function runTest(schemaName: string, packageName: string) {
 		const names = namer.getNames();
 
 		const factory = ts.factory;
-		generatePackage(factory, intermediateData.nodes, names, {
+		generatePackage(factory, intermediateData, names, {
 			directoryPath: packageDirectoryPath,
 			name: packageName,
 			version: "v0.0.0",

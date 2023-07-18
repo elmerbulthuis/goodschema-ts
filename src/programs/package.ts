@@ -2,12 +2,13 @@ import * as path from "node:path";
 import ts from "typescript";
 import * as yargs from "yargs";
 import { generatePackage } from "../generators/index.js";
-import * as schemaDraft04 from "../schema/draft-04/index.js";
-import * as schemaDraft06 from "../schema/draft-06/index.js";
-import * as schemaDraft07 from "../schema/draft-07/index.js";
-import * as schema201909 from "../schema/draft-2019-09/index.js";
-import * as schema202012 from "../schema/draft-2020-12/index.js";
-import { SchemaContext } from "../schema/index.js";
+import * as schemaDraft04 from "../strategies/draft-04/index.js";
+import * as schemaDraft06 from "../strategies/draft-06/index.js";
+import * as schemaDraft07 from "../strategies/draft-07/index.js";
+import * as schema201909 from "../strategies/draft-2019-09/index.js";
+import * as schema202012 from "../strategies/draft-2020-12/index.js";
+import { GeneratorContext } from "../strategies/index.js";
+import * as schemaIntermediateA from "../strategies/intermediate-a/index.js";
 import { Namer } from "../utils/index.js";
 
 export function configurePackageProgram(argv: yargs.Argv) {
@@ -29,6 +30,7 @@ export function configurePackageProgram(argv: yargs.Argv) {
 						schemaDraft07.metaSchemaId,
 						schemaDraft06.metaSchemaId,
 						schemaDraft04.metaSchemaId,
+						schemaIntermediateA.metaSchemaId,
 					] as const,
 					default: schema202012.metaSchemaId,
 				})
@@ -68,26 +70,30 @@ async function main(options: MainOptions) {
 	const packageDirectoryPath = path.resolve(options.packageDirectory);
 	const { packageName, packageVersion, rootNamePart } = options;
 
-	const context = new SchemaContext();
+	const context = new GeneratorContext();
 	context.registerStrategy(
 		schema202012.metaSchemaId,
-		new schema202012.SchemaStrategy()
+		new schema202012.GeneratorStrategy()
 	);
 	context.registerStrategy(
 		schema201909.metaSchemaId,
-		new schema201909.SchemaStrategy()
+		new schema201909.GeneratorStrategy()
 	);
 	context.registerStrategy(
 		schemaDraft07.metaSchemaId,
-		new schemaDraft07.SchemaStrategy()
+		new schemaDraft07.GeneratorStrategy()
 	);
 	context.registerStrategy(
 		schemaDraft06.metaSchemaId,
-		new schemaDraft06.SchemaStrategy()
+		new schemaDraft06.GeneratorStrategy()
 	);
 	context.registerStrategy(
 		schemaDraft04.metaSchemaId,
-		new schemaDraft04.SchemaStrategy()
+		new schemaDraft04.GeneratorStrategy()
+	);
+	context.registerStrategy(
+		schemaIntermediateA.metaSchemaId,
+		new schemaIntermediateA.GeneratorStrategy()
 	);
 
 	await context.loadFromUrl(schemaUrl, schemaUrl, null, defaultMetaSchemaId);
@@ -104,7 +110,7 @@ async function main(options: MainOptions) {
 	const names = namer.getNames();
 
 	const factory = ts.factory;
-	generatePackage(factory, intermediateData.nodes, names, {
+	generatePackage(factory, intermediateData, names, {
 		directoryPath: packageDirectoryPath,
 		name: packageName,
 		version: packageVersion,

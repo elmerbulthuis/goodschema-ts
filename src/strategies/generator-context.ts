@@ -1,18 +1,19 @@
 import * as intermediate from "@jns42/jns42-schema-intermediate-a";
 import * as fs from "fs";
-import { SchemaStrategyBase, SchemaStrategyInterface } from "./strategy.js";
+import { GeneratorStrategyBase } from "./generator-strategy.js";
 
-export class SchemaContext implements SchemaStrategyInterface {
+export class GeneratorContext {
 	private readonly rootNodeMetaMap = new Map<string, string>();
 	private readonly nodeMetaMap = new Map<string, string>();
 	private readonly retrievalRootNodeMap = new Map<string, URL>();
 	private readonly rootNodeRetrievalMap = new Map<string, URL>();
 
-	private strategies: Record<string, SchemaStrategyBase<unknown>> = {};
+	private strategies: Record<string, GeneratorStrategyBase<unknown, unknown>> =
+		{};
 
 	public registerStrategy(
 		metaSchemaId: string,
-		strategy: SchemaStrategyBase<unknown>
+		strategy: GeneratorStrategyBase<unknown, unknown>
 	) {
 		strategy.registerContext(this);
 		this.strategies[metaSchemaId] = strategy;
@@ -50,13 +51,13 @@ export class SchemaContext implements SchemaStrategyInterface {
 		const metaSchemaId =
 			this.discoverMetaSchemaId(rootNode) ?? defaultMetaSchemaId;
 
-		const strategy: SchemaStrategyBase<unknown> = this.strategies[metaSchemaId];
+		const strategy = this.strategies[metaSchemaId];
 
-		if (!strategy.isSchema(rootNode)) {
+		if (!strategy.isRootNode(rootNode)) {
 			throw new TypeError("invalid schema");
 		}
 
-		rootNodeUrl = strategy.makeNodeUrl(rootNode, retrievalUrl, "");
+		rootNodeUrl = strategy.makeRootNodeUrl(rootNode, retrievalUrl);
 
 		const rootNodeId = String(rootNodeUrl);
 
@@ -64,21 +65,7 @@ export class SchemaContext implements SchemaStrategyInterface {
 		this.rootNodeRetrievalMap.set(rootNodeId, retrievalUrl);
 		this.rootNodeMetaMap.set(rootNodeId, metaSchemaId);
 
-		for (const [
-			subNodeUrl,
-			subRetrievalUrl,
-		] of strategy.selectAllReferencedNodeUrls(
-			rootNode,
-			rootNodeUrl,
-			retrievalUrl
-		)) {
-			await this.loadFromUrl(
-				subNodeUrl,
-				subRetrievalUrl,
-				rootNodeUrl,
-				metaSchemaId
-			);
-		}
+		await strategy.loadDependencies(rootNode, rootNodeUrl, retrievalUrl);
 
 		await this.loadRootNode(
 			rootNode,
@@ -107,7 +94,7 @@ export class SchemaContext implements SchemaStrategyInterface {
 		const metaSchemaId =
 			this.discoverMetaSchemaId(rootNode) ?? defaultMetaSchemaId;
 
-		const strategy: SchemaStrategyBase<unknown> = this.strategies[metaSchemaId];
+		const strategy = this.strategies[metaSchemaId];
 
 		await strategy.loadRootNode(rootNode, rootNodeUrl, referencingNodeUrl);
 
@@ -117,12 +104,12 @@ export class SchemaContext implements SchemaStrategyInterface {
 		}
 	}
 
-	private async fetchJsonFromUrl(url: URL) {
+	private async fetchJsonFromUrl(url: URL): Promise<unknown> {
 		switch (url.protocol) {
 			case "http:":
 			case "http2:": {
 				const result = await fetch(url);
-				const schemaRootNode = (await result.json()) as unknown;
+				const schemaRootNode = await result.json();
 
 				return schemaRootNode;
 			}
@@ -130,7 +117,7 @@ export class SchemaContext implements SchemaStrategyInterface {
 			case "file:": {
 				const content = fs.readFileSync(url.pathname, "utf-8");
 
-				const schemaRootNode = JSON.parse(content) as unknown;
+				const schemaRootNode = JSON.parse(content);
 
 				return schemaRootNode;
 			}
@@ -138,10 +125,22 @@ export class SchemaContext implements SchemaStrategyInterface {
 	}
 
 	private discoverMetaSchemaId(node: unknown) {
-		for (const [metaSchemaId, strategy] of Object.entries(this.strategies)) {
-			if (strategy.isSchemaRootNode(node)) {
-				return metaSchemaId;
-			}
+		if (node == null) {
+			return null;
 		}
+
+		if (typeof node !== "object") {
+			return null;
+		}
+
+		if (!("$schema" in node)) {
+			return null;
+		}
+
+		if (typeof node.$schema !== "string") {
+			return null;
+		}
+
+		return node.$schema;
 	}
 }

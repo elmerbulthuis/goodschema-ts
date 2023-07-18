@@ -16,8 +16,8 @@ export interface PackageOptions {
 
 export function generatePackage(
 	factory: ts.NodeFactory,
-	nodes: Record<string, intermediate.Node>,
-	names: Record<string, string>,
+	intermediateData: intermediate.SchemaJson,
+	namesData: Record<string, string>,
 	options: PackageOptions
 ) {
 	fs.mkdirSync(options.directoryPath, { recursive: true });
@@ -29,20 +29,40 @@ export function generatePackage(
 	}
 
 	{
+		const data = namesData;
+		const filePath = path.join(options.directoryPath, "names.json");
+		fs.writeFileSync(filePath, formatData(data));
+	}
+
+	{
+		const data = intermediateData;
+		const filePath = path.join(options.directoryPath, "intermediate.json");
+		fs.writeFileSync(filePath, formatData(data));
+	}
+
+	{
 		const data = getTsconfigJsonData();
 		const filePath = path.join(options.directoryPath, "tsconfig.json");
 		fs.writeFileSync(filePath, formatData(data));
 	}
 
 	{
-		const codeGenerator = new MainTsCodeGenerator(factory, names, nodes);
+		const codeGenerator = new MainTsCodeGenerator(
+			factory,
+			namesData,
+			intermediateData.nodes
+		);
 		const statements = codeGenerator.getStatements();
 		const filePath = path.join(options.directoryPath, "main.ts");
 		fs.writeFileSync(filePath, formatStatements(factory, statements));
 	}
 
 	{
-		const codeGenerator = new MainSpecsTsCodeGenerator(factory, names, nodes);
+		const codeGenerator = new MainSpecsTsCodeGenerator(
+			factory,
+			namesData,
+			intermediateData.nodes
+		);
 		const statements = codeGenerator.getStatements();
 		const filePath = path.join(options.directoryPath, "main.spec.ts");
 		fs.writeFileSync(filePath, formatStatements(factory, statements));

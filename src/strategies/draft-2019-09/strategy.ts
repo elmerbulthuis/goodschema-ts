@@ -1,9 +1,9 @@
 import {
-	Draft202012Schema,
-	isDraft202012Schema,
-} from "@jns42/jns42-schema-draft-2020-12";
+	Draft201909Schema,
+	isDraft201909Schema,
+} from "@jns42/jns42-schema-draft-2019-09";
 import * as intermediate from "@jns42/jns42-schema-intermediate-a";
-import { SchemaStrategyBase } from "../strategy.js";
+import { SchemaStrategyBase } from "../schema-strategy.js";
 import { metaSchemaId } from "./meta.js";
 import {
 	selectAllSubNodesAndSelf,
@@ -11,22 +11,22 @@ import {
 	selectNodeConst,
 	selectNodeDeprecated,
 	selectNodeDescription,
-	selectNodeDynamicAnchor,
-	selectNodeDynamicRef,
 	selectNodeEnum,
 	selectNodeExamples,
 	selectNodeId,
 	selectNodePropertyNamesEntries,
+	selectNodeRecursiveAnchor,
+	selectNodeRecursiveRef,
 	selectNodeRef,
-	selectNodeSchema,
 	selectNodeTitle,
 	selectNodeTypes,
+	selectSubNodeAdditionalItemsEntries,
 	selectSubNodeAdditionalPropertiesEntries,
 	selectSubNodeAllOfEntries,
 	selectSubNodeAnyOfEntries,
-	selectSubNodeItemsEntries,
+	selectSubNodeItemsManyEntries,
+	selectSubNodeItemsOneEntries,
 	selectSubNodeOneOfEntries,
-	selectSubNodePrefixItemsEntries,
 	selectValidationMaximumExclusive,
 	selectValidationMaximumInclusive,
 	selectValidationMaximumItems,
@@ -43,66 +43,17 @@ import {
 	selectValidationValuePattern,
 } from "./selectors.js";
 
-export class SchemaStrategy extends SchemaStrategyBase<Draft202012Schema> {
+export class GeneratorStrategy extends SchemaStrategyBase<Draft201909Schema> {
 	//#region super implementation
 
 	protected readonly metaSchemaId = metaSchemaId;
 
-	public isSchemaRootNode(node: unknown): node is Draft202012Schema {
-		const schemaId = selectNodeSchema(node as Draft202012Schema);
-		if (schemaId == null) {
-			return false;
-		}
-		return schemaId === this.metaSchemaId;
-	}
-
-	public isSchema(node: unknown): node is Draft202012Schema {
-		return isDraft202012Schema(node);
-	}
-
-	protected async loadFromNode(
-		node: Draft202012Schema,
-		nodeUrl: URL,
-		retrievalUrl: URL
-	) {
-		const nodeRef = selectNodeRef(node);
-
-		if (nodeRef != null) {
-			const nodeRefUrl = new URL(nodeRef, nodeUrl);
-			const retrievalRefUrl = new URL(nodeRef, retrievalUrl);
-			retrievalRefUrl.hash = "";
-			await this.context.loadFromUrl(
-				nodeRefUrl,
-				retrievalRefUrl,
-				nodeUrl,
-				this.metaSchemaId
-			);
-		}
-	}
-
-	public makeNodeUrl(
-		node: Draft202012Schema,
-		nodeRootUrl: URL,
-		nodePointer: string
-	): URL {
-		let nodeUrl = this.selectNodeUrl(node);
-		if (nodeUrl != null) {
-			return nodeUrl;
-		}
-
-		nodeUrl = new URL(nodePointer === "" ? "" : `#${nodePointer}`, nodeRootUrl);
-		return nodeUrl;
-	}
-
-	public selectAllSubNodeEntriesAndSelf(
-		nodePointer: string,
-		node: Draft202012Schema
-	): Iterable<readonly [string, Draft202012Schema]> {
-		return selectAllSubNodesAndSelf(nodePointer, node);
+	public isRootNode(node: unknown): node is Draft201909Schema {
+		return isDraft201909Schema(node);
 	}
 
 	public *selectAllReferencedNodeUrls(
-		rootNode: Draft202012Schema,
+		rootNode: Draft201909Schema,
 		rootNodeUrl: URL,
 		retrievalUrl: URL
 	): Iterable<readonly [URL, URL]> {
@@ -120,11 +71,52 @@ export class SchemaStrategy extends SchemaStrategyBase<Draft202012Schema> {
 		}
 	}
 
-	public selectNodeUrl(node: Draft202012Schema) {
+	public selectNodeUrl(node: Draft201909Schema) {
 		const nodeId = selectNodeId(node);
 		if (nodeId != null) {
 			const nodeUrl = new URL(nodeId);
 			return nodeUrl;
+		}
+	}
+
+	public makeNodeUrl(
+		node: Draft201909Schema,
+		nodeRootUrl: URL,
+		nodePointer: string
+	): URL {
+		let nodeUrl = this.selectNodeUrl(node);
+		if (nodeUrl != null) {
+			return nodeUrl;
+		}
+
+		nodeUrl = new URL(nodePointer === "" ? "" : `#${nodePointer}`, nodeRootUrl);
+		return nodeUrl;
+	}
+
+	public selectAllSubNodeEntriesAndSelf(
+		nodePointer: string,
+		node: Draft201909Schema
+	): Iterable<readonly [string, Draft201909Schema]> {
+		return selectAllSubNodesAndSelf(nodePointer, node);
+	}
+
+	protected async loadFromNode(
+		node: Draft201909Schema,
+		nodeUrl: URL,
+		retrievalUrl: URL
+	) {
+		const nodeRef = selectNodeRef(node);
+
+		if (nodeRef != null) {
+			const nodeRefUrl = new URL(nodeRef, nodeUrl);
+			const retrievalRefUrl = new URL(nodeRef, retrievalUrl);
+			retrievalRefUrl.hash = "";
+			await this.context.loadFromUrl(
+				nodeRefUrl,
+				retrievalRefUrl,
+				nodeUrl,
+				this.metaSchemaId
+			);
 		}
 	}
 
@@ -149,11 +141,11 @@ export class SchemaStrategy extends SchemaStrategyBase<Draft202012Schema> {
 				superNodeId = resolvedNodeId;
 			}
 
-			const nodeDynamicRef = selectNodeDynamicRef(node);
-			if (nodeDynamicRef != null) {
-				const resolvedNodeId = this.resolveDynamicReferenceNodeId(
+			const nodeRecursiveRef = selectNodeRecursiveRef(node);
+			if (nodeRecursiveRef != null) {
+				const resolvedNodeId = this.resolveRecursiveReferenceNodeId(
 					nodeId,
-					nodeDynamicRef
+					nodeRecursiveRef
 				);
 
 				superNodeId = resolvedNodeId;
@@ -265,7 +257,7 @@ export class SchemaStrategy extends SchemaStrategyBase<Draft202012Schema> {
 	}
 
 	private *makeNodeTypeFromBoolean(
-		node: Draft202012Schema
+		node: Draft201909Schema
 	): Iterable<intermediate.TypeUnion> {
 		const enumValues = selectNodeEnum(node);
 		const constValue = selectNodeConst(node);
@@ -285,7 +277,7 @@ export class SchemaStrategy extends SchemaStrategyBase<Draft202012Schema> {
 	}
 
 	private *makeNodeTypeFromNumber(
-		node: Draft202012Schema,
+		node: Draft201909Schema,
 		numberType: "integer" | "float"
 	): Iterable<intermediate.TypeUnion> {
 		const enumValues = selectNodeEnum(node);
@@ -318,7 +310,7 @@ export class SchemaStrategy extends SchemaStrategyBase<Draft202012Schema> {
 	}
 
 	private *makeNodeTypeFromString(
-		node: Draft202012Schema
+		node: Draft201909Schema
 	): Iterable<intermediate.TypeUnion> {
 		const enumValues = selectNodeEnum(node);
 		const constValue = selectNodeConst(node);
@@ -345,18 +337,21 @@ export class SchemaStrategy extends SchemaStrategyBase<Draft202012Schema> {
 	}
 
 	private *makeNodeTypeFromArray(
-		node: Draft202012Schema,
+		node: Draft201909Schema,
 		nodeRootUrl: URL,
 		nodePointer: string
 	): Iterable<intermediate.TypeUnion> {
-		const items = [...selectSubNodeItemsEntries(nodePointer, node)];
-		const prefixItems = [...selectSubNodePrefixItemsEntries(nodePointer, node)];
+		const itemsOne = [...selectSubNodeItemsOneEntries(nodePointer, node)];
+		const itemsMany = [...selectSubNodeItemsManyEntries(nodePointer, node)];
+		const additionalItems = [
+			...selectSubNodeAdditionalItemsEntries(nodePointer, node),
+		];
 		const minimumItems = selectValidationMinimumItems(node);
 		const maximumItems = selectValidationMaximumItems(node);
 		const uniqueItems = selectValidationUniqueItems(node) ?? false;
 
-		if (prefixItems.length > 0) {
-			const itemTypeNodeIds = prefixItems.map(([itemNodePointer]) => {
+		if (itemsMany.length > 0) {
+			const itemTypeNodeIds = itemsMany.map(([itemNodePointer]) => {
 				const itemNodeUrl = new URL(`#${itemNodePointer}`, nodeRootUrl);
 				const itemNodeId = String(itemNodeUrl);
 				return itemNodeId;
@@ -366,10 +361,24 @@ export class SchemaStrategy extends SchemaStrategyBase<Draft202012Schema> {
 				type: "tuple",
 				itemTypeNodeIds: itemTypeNodeIds,
 			};
-		}
+		} else if (itemsOne.length > 0) {
+			const itemTypeNodeIds = itemsOne.map(([itemNodePointer]) => {
+				const itemNodeUrl = new URL(`#${itemNodePointer}`, nodeRootUrl);
+				const itemNodeId = String(itemNodeUrl);
+				return itemNodeId;
+			});
 
-		if (items.length > 0) {
-			const itemTypeNodeIds = items.map(([itemNodePointer]) => {
+			for (const itemTypeNodeId of itemTypeNodeIds) {
+				yield {
+					type: "array",
+					minimumItems,
+					maximumItems,
+					uniqueItems,
+					itemTypeNodeId,
+				};
+			}
+		} else if (additionalItems.length > 0) {
+			const itemTypeNodeIds = additionalItems.map(([itemNodePointer]) => {
 				const itemNodeUrl = new URL(`#${itemNodePointer}`, nodeRootUrl);
 				const itemNodeId = String(itemNodeUrl);
 				return itemNodeId;
@@ -388,7 +397,7 @@ export class SchemaStrategy extends SchemaStrategyBase<Draft202012Schema> {
 	}
 
 	private *makeNodeTypeFromObject(
-		node: Draft202012Schema,
+		node: Draft201909Schema,
 		nodeRootUrl: URL,
 		nodePointer: string
 	): Iterable<intermediate.TypeUnion> {
@@ -447,7 +456,7 @@ export class SchemaStrategy extends SchemaStrategyBase<Draft202012Schema> {
 	}
 
 	private *makeNodeCompoundFromAllOf(
-		node: Draft202012Schema,
+		node: Draft201909Schema,
 		nodeRootUrl: URL,
 		nodePointer: string
 	): Iterable<intermediate.CompoundUnion> {
@@ -467,7 +476,7 @@ export class SchemaStrategy extends SchemaStrategyBase<Draft202012Schema> {
 	}
 
 	private *makeNodeCompoundFromAnyOf(
-		node: Draft202012Schema,
+		node: Draft201909Schema,
 		nodeRootUrl: URL,
 		nodePointer: string
 	): Iterable<intermediate.CompoundUnion> {
@@ -487,7 +496,7 @@ export class SchemaStrategy extends SchemaStrategyBase<Draft202012Schema> {
 	}
 
 	private *makeNodeCompoundFromOneOf(
-		node: Draft202012Schema,
+		node: Draft201909Schema,
 		nodeRootUrl: URL,
 		nodePointer: string
 	): Iterable<intermediate.CompoundUnion> {
@@ -511,14 +520,50 @@ export class SchemaStrategy extends SchemaStrategyBase<Draft202012Schema> {
 	//#region references
 
 	private readonly anchorMap = new Map<string, string>();
-	private readonly dynamicAnchorMap = new Map<string, string>();
+	private readonly recursiveAnchorMap = new Map<string, string>();
 
-	private getAnchorNodeId(nodeId: string) {
+	public getAnchorNodeId(nodeId: string) {
 		return this.anchorMap.get(nodeId);
 	}
 
-	private getDynamicAnchorNodeId(nodeId: string) {
-		return this.dynamicAnchorMap.get(nodeId);
+	public getRecursiveAnchorNodeId(nodeId: string) {
+		const nodeKey = String(nodeId);
+		return this.recursiveAnchorMap.get(nodeKey);
+	}
+
+	/*
+    override the super function to load recursive anchors
+    */
+	protected *indexNode(
+		node: Draft201909Schema,
+		nodeRootUrl: URL,
+		nodePointer: string
+	) {
+		const nodeUrl = this.makeNodeUrl(node, nodeRootUrl, nodePointer);
+		const nodeId = String(nodeUrl);
+
+		const nodeAnchor = selectNodeAnchor(node);
+		if (nodeAnchor != null) {
+			const anchorUrl = new URL(`#${nodeAnchor}`, nodeRootUrl);
+			const anchorId = String(anchorUrl);
+			if (this.anchorMap.has(anchorId)) {
+				throw new Error("duplicate anchorId");
+			}
+			this.anchorMap.set(anchorId, nodeId);
+
+			yield anchorUrl;
+		}
+
+		const nodeRecursiveAnchor = selectNodeRecursiveAnchor(node);
+		if (nodeRecursiveAnchor ?? false) {
+			const recursiveAnchorId = nodeId;
+			if (this.recursiveAnchorMap.has(recursiveAnchorId)) {
+				throw new Error("duplicate recursiveAnchorId");
+			}
+			this.recursiveAnchorMap.set(recursiveAnchorId, nodeId);
+		}
+
+		yield* super.indexNode(node, nodeRootUrl, nodePointer);
 	}
 
 	private resolveReferenceNodeId(nodeId: string, nodeRef: string) {
@@ -545,16 +590,16 @@ export class SchemaStrategy extends SchemaStrategyBase<Draft202012Schema> {
 		return resolvedNodeId;
 	}
 
-	private resolveDynamicReferenceNodeId(
+	private resolveRecursiveReferenceNodeId(
 		nodeId: string,
-		nodeDynamicRef: string
+		nodeRecursiveRef: string
 	) {
 		const nodeItem = this.getNodeItem(nodeId);
 
 		const nodeRootId = String(nodeItem.nodeRootUrl);
 		const nodeRetrievalUrl = this.context.getNodeRetrievalUrl(nodeRootId);
 
-		const nodeRefRetrievalUrl = new URL(nodeDynamicRef, nodeRetrievalUrl);
+		const nodeRefRetrievalUrl = new URL(nodeRecursiveRef, nodeRetrievalUrl);
 		const hash = nodeRefRetrievalUrl.hash;
 		nodeRefRetrievalUrl.hash = "";
 		const nodeRefRetrievalId = String(nodeRefRetrievalUrl);
@@ -570,54 +615,16 @@ export class SchemaStrategy extends SchemaStrategyBase<Draft202012Schema> {
 
 			const currentNodeUrl = new URL(hash, currentRootNode.nodeUrl);
 			const currentNodeId = String(currentNodeUrl);
-			const dynamicAnchorNodeId = this.getDynamicAnchorNodeId(currentNodeId);
-			if (dynamicAnchorNodeId != null) {
-				resolvedNodeId = dynamicAnchorNodeId;
+			const recursiveAnchorNodeId =
+				this.getRecursiveAnchorNodeId(currentNodeId);
+			if (recursiveAnchorNodeId != null) {
+				resolvedNodeId = recursiveAnchorNodeId;
 			}
 
 			currentRootNodeUrl = currentRootNode.referencingNodeUrl;
 		}
 
 		return resolvedNodeId;
-	}
-
-	/*
-    override the super function to load dynamic anchors
-    */
-	protected *indexNode(
-		node: Draft202012Schema,
-		nodeRootUrl: URL,
-		nodePointer: string
-	) {
-		const nodeUrl = this.makeNodeUrl(node, nodeRootUrl, nodePointer);
-		const nodeId = String(nodeUrl);
-
-		const nodeAnchor = selectNodeAnchor(node);
-		if (nodeAnchor != null) {
-			const anchorUrl = new URL(`#${nodeAnchor}`, nodeRootUrl);
-			const anchorId = String(anchorUrl);
-			if (this.anchorMap.has(anchorId)) {
-				throw new Error("duplicate anchorId");
-			}
-			this.anchorMap.set(anchorId, nodeId);
-
-			yield anchorUrl;
-		}
-
-		const nodeDynamicAnchor = selectNodeDynamicAnchor(node);
-		if (nodeDynamicAnchor != null) {
-			const dynamicAnchorUrl = new URL(`#${nodeDynamicAnchor}`, nodeRootUrl);
-			const dynamicAnchorId = String(dynamicAnchorUrl);
-			if (this.dynamicAnchorMap.has(dynamicAnchorId)) {
-				throw new Error("duplicate dynamicAnchorId");
-			}
-			this.dynamicAnchorMap.set(dynamicAnchorId, nodeId);
-
-			// TODO should wel yield this?
-			// yield dynamicAnchorUrl;
-		}
-
-		yield* super.indexNode(node, nodeRootUrl, nodePointer);
 	}
 
 	//#endregion

@@ -11,6 +11,12 @@ export interface RootNodeItem<N> {
 export abstract class LoaderStrategyBase<R, N> {
 	protected abstract readonly metaSchemaId: string;
 
+	public abstract getNodeEntries(): Iterable<[string, intermediate.Node]>;
+	public abstract isRootNode(node: unknown): node is R;
+	public abstract makeRootNodeUrl(rootNode: R, nodeRootUrl: URL): URL;
+
+	private readonly rootNodeMap = new Map<string, RootNodeItem<R>>();
+
 	//#region context
 
 	private maybeContext?: LoaderContext;
@@ -24,34 +30,22 @@ export abstract class LoaderStrategyBase<R, N> {
 
 	//#endregion
 
-	public abstract getNodeEntries(): Iterable<[string, intermediate.Node]>;
-	public abstract isRootNode(node: unknown): node is R;
-
-	public abstract scheduleDependencies(
+	public initializeRootNode(
 		rootNode: R,
 		rootNodeUrl: URL,
 		retrievalUrl: URL,
-	): void;
-
-	public abstract makeRootNodeUrl(rootNode: R, nodeRootUrl: URL): URL;
-
-	private readonly rootNodeMap = new Map<string, RootNodeItem<R>>();
-	public abstract indexRootNode(rootNodeUrl: URL): void;
-	public initializeRootNode(
-		node: R,
-		nodeUrl: URL,
-		referencingNodeUrl: URL | null,
+		referencingUrl: URL | null,
 	) {
-		const nodeId = String(nodeUrl);
+		const nodeId = String(rootNodeUrl);
 
 		if (this.rootNodeMap.has(nodeId)) {
 			throw new Error("rootNode already present");
 		}
 
 		const item = {
-			node,
-			nodeUrl,
-			referencingNodeUrl,
+			node: rootNode,
+			nodeUrl: rootNodeUrl,
+			referencingNodeUrl: referencingUrl,
 		};
 
 		this.rootNodeMap.set(nodeId, item);

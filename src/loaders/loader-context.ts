@@ -1,5 +1,5 @@
 import * as intermediate from "@jns42/jns42-schema-intermediate-a";
-import * as fs from "fs";
+import { discoverMetaSchemaId, loadJSON } from "../utils/index.js";
 import { LoaderStrategyBase } from "./loader-strategy.js";
 
 interface FetchCommand {
@@ -109,16 +109,9 @@ export class LoaderContext {
 		const { retrievalUrl, referencingUrl, defaultMetaSchemaId } = command;
 		let { rootNodeUrl } = command;
 
-		const retrievalId = String(retrievalUrl);
+		const rootNode = await loadJSON(retrievalUrl);
 
-		if (this.retrievalRootNodeMap.has(retrievalId)) {
-			return;
-		}
-
-		const rootNode = await this.fetchJsonFromUrl(retrievalUrl);
-
-		const metaSchemaId =
-			this.discoverMetaSchemaId(rootNode) ?? defaultMetaSchemaId;
+		const metaSchemaId = discoverMetaSchemaId(rootNode) ?? defaultMetaSchemaId;
 
 		const strategy = this.strategies[metaSchemaId];
 
@@ -135,74 +128,18 @@ export class LoaderContext {
 		*/
 		rootNodeUrl = strategy.makeRootNodeUrl(rootNode, retrievalUrl);
 
+		const retrievalId = String(retrievalUrl);
 		const rootNodeId = String(rootNodeUrl);
 
 		this.retrievalRootNodeMap.set(retrievalId, rootNodeUrl);
 		this.rootNodeRetrievalMap.set(rootNodeId, retrievalUrl);
 		this.rootNodeMetaMap.set(rootNodeId, metaSchemaId);
 
-		strategy.scheduleDependencies(rootNode, rootNodeUrl, retrievalUrl);
-
-		this.initializeRootNode(
+		strategy.initializeRootNode(
 			rootNode,
 			rootNodeUrl,
+			retrievalUrl,
 			referencingUrl,
-			defaultMetaSchemaId,
 		);
-	}
-
-	private initializeRootNode(
-		rootNode: unknown,
-		rootNodeUrl: URL,
-		referencingNodeUrl: URL | null,
-		defaultMetaSchemaId: string,
-	) {
-		const metaSchemaId =
-			this.discoverMetaSchemaId(rootNode) ?? defaultMetaSchemaId;
-
-		const strategy = this.strategies[metaSchemaId];
-
-		strategy.initializeRootNode(rootNode, rootNodeUrl, referencingNodeUrl);
-
-		strategy.indexRootNode(rootNodeUrl);
-	}
-
-	private async fetchJsonFromUrl(url: URL): Promise<unknown> {
-		switch (url.protocol) {
-			case "http:":
-			case "http2:": {
-				const result = await fetch(url);
-				const schemaRootNode = await result.json();
-
-				return schemaRootNode;
-			}
-
-			case "file:": {
-				const content = fs.readFileSync(url.pathname, "utf-8");
-				const schemaRootNode = JSON.parse(content);
-
-				return schemaRootNode;
-			}
-		}
-	}
-
-	private discoverMetaSchemaId(node: unknown) {
-		if (node == null) {
-			return null;
-		}
-
-		if (typeof node !== "object") {
-			return null;
-		}
-
-		if (!("$schema" in node)) {
-			return null;
-		}
-
-		if (typeof node.$schema !== "string") {
-			return null;
-		}
-
-		return node.$schema;
 	}
 }

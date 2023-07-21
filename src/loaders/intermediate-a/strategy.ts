@@ -14,14 +14,6 @@ export class LoaderStrategy extends LoaderStrategyBase<
 		return intermediate.isSchemaJson(node);
 	}
 
-	public scheduleDependencies(
-		rootNode: intermediate.SchemaJson,
-		rootNodeUrl: URL,
-		retrievalUrl: URL,
-	): void {
-		//
-	}
-
 	public makeRootNodeUrl(
 		rootNode: intermediate.SchemaJson,
 		nodeRootUrl: URL,
@@ -33,15 +25,24 @@ export class LoaderStrategy extends LoaderStrategyBase<
 		return this.nodeMap.entries();
 	}
 
-	public indexRootNode(rootNodeUrl: URL): void {
-		const rootNodeId = String(rootNodeUrl);
-		const rootItem = this.getRootNodeItem(rootNodeId);
-
-		for (const [nodeId, node] of Object.entries(rootItem.node.nodes)) {
+	public initializeRootNode(
+		rootNode: intermediate.SchemaJson,
+		rootNodeUrl: URL,
+		retrievalUrl: URL,
+		referencingUrl: URL | null,
+	) {
+		for (const [nodeId, node] of Object.entries(rootNode.nodes)) {
 			if (this.nodeMap.has(nodeId)) {
 				throw new Error("duplicate nodeId");
 			}
 			this.nodeMap.set(nodeId, node);
 		}
+
+		super.initializeRootNode(
+			rootNode,
+			rootNodeUrl,
+			retrievalUrl,
+			referencingUrl,
+		);
 	}
 }

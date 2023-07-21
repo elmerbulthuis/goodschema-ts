@@ -22,10 +22,11 @@ export abstract class SchemaLoaderStrategyBase<N> extends LoaderStrategyBase<
 		nodePointer: string,
 	): URL;
 
-	public scheduleDependencies(
+	public initializeRootNode(
 		rootNode: N,
 		rootNodeUrl: URL,
 		retrievalUrl: URL,
+		referencingUrl: URL | null,
 	) {
 		for (const [
 			subNodeUrl,
@@ -42,18 +43,20 @@ export abstract class SchemaLoaderStrategyBase<N> extends LoaderStrategyBase<
 				this.metaSchemaId,
 			);
 		}
-	}
-
-	public indexRootNode(rootNodeUrl: URL): void {
-		const rootNodeId = String(rootNodeUrl);
-		const rootItem = this.getRootNodeItem(rootNodeId);
 
 		for (const [subPointer, subNode] of this.selectAllSubNodeEntriesAndSelf(
 			"",
-			rootItem.node,
+			rootNode,
 		)) {
 			this.indexNode(subNode, rootNodeUrl, subPointer);
 		}
+
+		super.initializeRootNode(
+			rootNode,
+			rootNodeUrl,
+			retrievalUrl,
+			referencingUrl,
+		);
 	}
 
 	protected indexNode(node: N, nodeRootUrl: URL, nodePointer: string) {
@@ -83,6 +86,7 @@ export abstract class SchemaLoaderStrategyBase<N> extends LoaderStrategyBase<
 		rootNodeUrl: URL,
 		retrievalUrl: URL,
 	): Iterable<readonly [URL, URL]>;
+
 	protected selectRootNodeEntries(): Iterable<[URL, N]> {
 		return [...this.getRootNodeItems()].map(({ nodeUrl, node }) => [
 			nodeUrl,

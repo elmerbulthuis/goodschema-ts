@@ -22,7 +22,7 @@ export abstract class SchemaLoaderStrategyBase<N> extends LoaderStrategyBase<
 		nodePointer: string,
 	): URL;
 
-	public async loadDependencies(
+	public scheduleDependencies(
 		rootNode: N,
 		rootNodeUrl: URL,
 		retrievalUrl: URL,
@@ -35,7 +35,7 @@ export abstract class SchemaLoaderStrategyBase<N> extends LoaderStrategyBase<
 			rootNodeUrl,
 			retrievalUrl,
 		)) {
-			await this.context.loadFromUrl(
+			this.context.scheduleLoadFromUrl(
 				subNodeUrl,
 				subRetrievalUrl,
 				rootNodeUrl,

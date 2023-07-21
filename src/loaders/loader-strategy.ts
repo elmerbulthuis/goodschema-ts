@@ -27,17 +27,17 @@ export abstract class LoaderStrategyBase<R, N> {
 	public abstract getNodeEntries(): Iterable<[string, intermediate.Node]>;
 	public abstract isRootNode(node: unknown): node is R;
 
-	public abstract loadDependencies(
+	public abstract scheduleDependencies(
 		rootNode: R,
 		rootNodeUrl: URL,
 		retrievalUrl: URL,
-	): Promise<void>;
+	): void;
 
 	public abstract makeRootNodeUrl(rootNode: R, nodeRootUrl: URL): URL;
 
 	private readonly rootNodeMap = new Map<string, RootNodeItem<R>>();
 	public abstract indexRootNode(rootNodeUrl: URL): void;
-	public async loadRootNode(
+	public initializeRootNode(
 		node: R,
 		nodeUrl: URL,
 		referencingNodeUrl: URL | null,

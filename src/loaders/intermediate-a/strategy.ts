@@ -14,11 +14,11 @@ export class LoaderStrategy extends LoaderStrategyBase<
 		return intermediate.isSchemaJson(node);
 	}
 
-	public async loadDependencies(
+	public scheduleDependencies(
 		rootNode: intermediate.SchemaJson,
 		rootNodeUrl: URL,
 		retrievalUrl: URL,
-	): Promise<void> {
+	): void {
 		//
 	}
 

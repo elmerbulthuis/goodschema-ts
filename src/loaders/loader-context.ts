@@ -2,7 +2,18 @@ import * as intermediate from "@jns42/jns42-schema-intermediate-a";
 import * as fs from "fs";
 import { LoaderStrategyBase } from "./loader-strategy.js";
 
+interface FetchCommand {
+	rootNodeUrl: URL;
+	retrievalUrl: URL;
+	referencingUrl: URL | null;
+	defaultMetaSchemaId: string;
+}
+
 export class LoaderContext {
+	private readonly fetchCommandQueue = new Array<FetchCommand>();
+	private readonly fetchCommandDone = new Set<string>();
+	private processFetchCommandQueuePromise: Promise<void> | null = null;
+
 	private readonly rootNodeMetaMap = new Map<string, string>();
 	private readonly retrievalRootNodeMap = new Map<string, URL>();
 	private readonly rootNodeRetrievalMap = new Map<string, URL>();
@@ -37,6 +48,67 @@ export class LoaderContext {
 		referencingUrl: URL | null,
 		defaultMetaSchemaId: string,
 	) {
+		this.scheduleLoadFromUrl(
+			rootNodeUrl,
+			retrievalUrl,
+			referencingUrl,
+			defaultMetaSchemaId,
+		);
+		await this.processFetchCommandQueuePromise;
+	}
+
+	public scheduleLoadFromUrl(
+		rootNodeUrl: URL,
+		retrievalUrl: URL,
+		referencingUrl: URL | null,
+		defaultMetaSchemaId: string,
+	) {
+		this.fetchCommandQueue.push({
+			rootNodeUrl,
+			retrievalUrl,
+			referencingUrl,
+			defaultMetaSchemaId,
+		});
+		this.kickProcessFetchCommandQueue();
+	}
+
+	public getNodeRetrievalUrl(nodeRootId: string) {
+		return this.rootNodeRetrievalMap.get(nodeRootId);
+	}
+
+	public getNodeRootUrl(nodeRetrievalId: string) {
+		return this.retrievalRootNodeMap.get(nodeRetrievalId);
+	}
+
+	private kickProcessFetchCommandQueue() {
+		if (this.processFetchCommandQueuePromise == null) {
+			this.processFetchCommandQueuePromise =
+				this.processFetchCommandQueue().finally(
+					() => (this.processFetchCommandQueuePromise = null),
+				);
+		}
+	}
+
+	private async processFetchCommandQueue() {
+		let command;
+		while ((command = this.fetchCommandQueue.shift()) != null) {
+			const id = command.retrievalUrl.toString();
+
+			if (this.fetchCommandDone.has(id)) {
+				continue;
+			}
+			try {
+				await this.processFetchCommand(command);
+			} finally {
+				this.fetchCommandDone.add(id);
+			}
+		}
+	}
+
+	private async processFetchCommand(command: FetchCommand) {
+		const { retrievalUrl, referencingUrl, defaultMetaSchemaId } = command;
+		let { rootNodeUrl } = command;
+
 		const retrievalId = String(retrievalUrl);
 
 		if (this.retrievalRootNodeMap.has(retrievalId)) {
@@ -69,9 +141,9 @@ export class LoaderContext {
 		this.rootNodeRetrievalMap.set(rootNodeId, retrievalUrl);
 		this.rootNodeMetaMap.set(rootNodeId, metaSchemaId);
 
-		await strategy.loadDependencies(rootNode, rootNodeUrl, retrievalUrl);
+		strategy.scheduleDependencies(rootNode, rootNodeUrl, retrievalUrl);
 
-		await this.loadRootNode(
+		this.initializeRootNode(
 			rootNode,
 			rootNodeUrl,
 			referencingUrl,
@@ -79,15 +151,7 @@ export class LoaderContext {
 		);
 	}
 
-	public getNodeRetrievalUrl(nodeRootId: string) {
-		return this.rootNodeRetrievalMap.get(nodeRootId);
-	}
-
-	public getNodeRootUrl(nodeRetrievalId: string) {
-		return this.retrievalRootNodeMap.get(nodeRetrievalId);
-	}
-
-	private async loadRootNode(
+	private initializeRootNode(
 		rootNode: unknown,
 		rootNodeUrl: URL,
 		referencingNodeUrl: URL | null,
@@ -98,7 +162,7 @@ export class LoaderContext {
 
 		const strategy = this.strategies[metaSchemaId];
 
-		await strategy.loadRootNode(rootNode, rootNodeUrl, referencingNodeUrl);
+		strategy.initializeRootNode(rootNode, rootNodeUrl, referencingNodeUrl);
 
 		strategy.indexRootNode(rootNodeUrl);
 	}
@@ -115,7 +179,6 @@ export class LoaderContext {
 
 			case "file:": {
 				const content = fs.readFileSync(url.pathname, "utf-8");
-
 				const schemaRootNode = JSON.parse(content);
 
 				return schemaRootNode;

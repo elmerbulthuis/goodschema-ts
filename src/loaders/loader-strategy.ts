@@ -36,7 +36,7 @@ export abstract class LoaderStrategyBase<R, N> {
 	public abstract makeRootNodeUrl(rootNode: R, nodeRootUrl: URL): URL;
 
 	private readonly rootNodeMap = new Map<string, RootNodeItem<R>>();
-	public abstract indexRootNode(rootNodeUrl: URL): Iterable<URL>;
+	public abstract indexRootNode(rootNodeUrl: URL): void;
 	public async loadRootNode(
 		node: R,
 		nodeUrl: URL,

@@ -575,7 +575,7 @@ export class LoaderStrategy extends SchemaLoaderStrategyBase<Draft202012Schema> 
 	/*
     override the super function to load dynamic anchors
     */
-	protected *indexNode(
+	protected indexNode(
 		node: Draft202012Schema,
 		nodeRootUrl: URL,
 		nodePointer: string,
@@ -591,8 +591,6 @@ export class LoaderStrategy extends SchemaLoaderStrategyBase<Draft202012Schema> 
 				throw new Error("duplicate anchorId");
 			}
 			this.anchorMap.set(anchorId, nodeId);
-
-			yield anchorUrl;
 		}
 
 		const nodeDynamicAnchor = selectNodeDynamicAnchor(node);
@@ -608,7 +606,7 @@ export class LoaderStrategy extends SchemaLoaderStrategyBase<Draft202012Schema> 
 			// yield dynamicAnchorUrl;
 		}
 
-		yield* super.indexNode(node, nodeRootUrl, nodePointer);
+		super.indexNode(node, nodeRootUrl, nodePointer);
 	}
 
 	//#endregion

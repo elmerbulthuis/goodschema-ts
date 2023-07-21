@@ -33,19 +33,15 @@ export class LoaderStrategy extends LoaderStrategyBase<
 		return this.nodeMap.entries();
 	}
 
-	public *indexRootNode(rootNodeUrl: URL): Iterable<URL> {
+	public indexRootNode(rootNodeUrl: URL): void {
 		const rootNodeId = String(rootNodeUrl);
 		const rootItem = this.getRootNodeItem(rootNodeId);
 
 		for (const [nodeId, node] of Object.entries(rootItem.node.nodes)) {
-			const nodeUrl = new URL(nodeId);
-
 			if (this.nodeMap.has(nodeId)) {
 				throw new Error("duplicate nodeId");
 			}
 			this.nodeMap.set(nodeId, node);
-
-			yield nodeUrl;
 		}
 	}
 }

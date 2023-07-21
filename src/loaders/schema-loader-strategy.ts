@@ -44,7 +44,7 @@ export abstract class SchemaLoaderStrategyBase<N> extends LoaderStrategyBase<
 		}
 	}
 
-	public *indexRootNode(rootNodeUrl: URL): Iterable<URL> {
+	public indexRootNode(rootNodeUrl: URL): void {
 		const rootNodeId = String(rootNodeUrl);
 		const rootItem = this.getRootNodeItem(rootNodeId);
 
@@ -52,11 +52,11 @@ export abstract class SchemaLoaderStrategyBase<N> extends LoaderStrategyBase<
 			"",
 			rootItem.node,
 		)) {
-			yield* this.indexNode(subNode, rootNodeUrl, subPointer);
+			this.indexNode(subNode, rootNodeUrl, subPointer);
 		}
 	}
 
-	protected *indexNode(node: N, nodeRootUrl: URL, nodePointer: string) {
+	protected indexNode(node: N, nodeRootUrl: URL, nodePointer: string) {
 		const nodeUrl = this.makeNodeUrl(node, nodeRootUrl, nodePointer);
 		const nodeId = String(nodeUrl);
 
@@ -69,7 +69,6 @@ export abstract class SchemaLoaderStrategyBase<N> extends LoaderStrategyBase<
 			throw new Error("duplicate nodeId");
 		}
 		this.nodeMap.set(nodeId, item);
-		yield nodeUrl;
 	}
 
 	//#region selectors

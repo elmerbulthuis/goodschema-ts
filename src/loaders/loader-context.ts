@@ -4,7 +4,6 @@ import { LoaderStrategyBase } from "./loader-strategy.js";
 
 export class LoaderContext {
 	private readonly rootNodeMetaMap = new Map<string, string>();
-	private readonly nodeMetaMap = new Map<string, string>();
 	private readonly retrievalRootNodeMap = new Map<string, URL>();
 	private readonly rootNodeRetrievalMap = new Map<string, URL>();
 
@@ -101,10 +100,7 @@ export class LoaderContext {
 
 		await strategy.loadRootNode(rootNode, rootNodeUrl, referencingNodeUrl);
 
-		for (const nodeUrl of strategy.indexRootNode(rootNodeUrl)) {
-			const nodeId = String(nodeUrl);
-			this.nodeMetaMap.set(nodeId, metaSchemaId);
-		}
+		strategy.indexRootNode(rootNodeUrl);
 	}
 
 	private async fetchJsonFromUrl(url: URL): Promise<unknown> {

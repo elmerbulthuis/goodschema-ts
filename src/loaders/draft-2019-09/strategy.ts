@@ -52,26 +52,7 @@ export class LoaderStrategy extends SchemaLoaderStrategyBase<Draft201909Schema> 
 		return isDraft201909Schema(node);
 	}
 
-	public *selectAllReferencedNodeUrls(
-		rootNode: Draft201909Schema,
-		rootNodeUrl: URL,
-		retrievalUrl: URL,
-	): Iterable<readonly [URL, URL]> {
-		for (const [pointer, node] of selectAllSubNodesAndSelf("", rootNode)) {
-			const nodeRef = selectNodeRef(node);
-			if (nodeRef == null) {
-				continue;
-			}
-
-			const refNodeUrl = new URL(nodeRef, rootNodeUrl);
-			const refRetrievalUrl = new URL(nodeRef, retrievalUrl);
-			refRetrievalUrl.hash = "";
-
-			yield [refNodeUrl, refRetrievalUrl] as const;
-		}
-	}
-
-	public selectNodeUrl(node: Draft201909Schema) {
+	protected selectNodeUrl(node: Draft201909Schema) {
 		const nodeId = selectNodeId(node);
 		if (nodeId != null) {
 			const nodeUrl = new URL(nodeId);
@@ -93,38 +74,20 @@ export class LoaderStrategy extends SchemaLoaderStrategyBase<Draft201909Schema> 
 		return nodeUrl;
 	}
 
-	public selectAllSubNodeEntriesAndSelf(
+	protected selectAllSubNodeEntriesAndSelf(
 		nodePointer: string,
 		node: Draft201909Schema,
 	): Iterable<readonly [string, Draft201909Schema]> {
 		return selectAllSubNodesAndSelf(nodePointer, node);
 	}
 
-	protected async loadFromNode(
-		node: Draft201909Schema,
-		nodeUrl: URL,
-		retrievalUrl: URL,
-	) {
-		const nodeRef = selectNodeRef(node);
-
-		if (nodeRef != null) {
-			const nodeRefUrl = new URL(nodeRef, nodeUrl);
-			const retrievalRefUrl = new URL(nodeRef, retrievalUrl);
-			retrievalRefUrl.hash = "";
-			await this.context.loadFromUrl(
-				nodeRefUrl,
-				retrievalRefUrl,
-				nodeUrl,
-				this.metaSchemaId,
-			);
-		}
-	}
-
 	//#endregion
 
 	//#region strategy implementation
 
-	public *getNodeEntries(): Iterable<[string, intermediate.Node]> {
+	public *getNodeEntries(
+		retrievalPairs: Array<[URL, URL]>,
+	): Iterable<[string, intermediate.Node]> {
 		for (const [nodeId, { node }] of this.getNodeItemEntries()) {
 			const title = selectNodeTitle(node) ?? "";
 			const description = selectNodeDescription(node) ?? "";
@@ -136,7 +99,11 @@ export class LoaderStrategy extends SchemaLoaderStrategyBase<Draft201909Schema> 
 			const nodeRef = selectNodeRef(node);
 
 			if (nodeRef != null) {
-				const resolvedNodeId = this.resolveReferenceNodeId(nodeId, nodeRef);
+				const resolvedNodeId = this.resolveReferenceNodeId(
+					retrievalPairs,
+					nodeId,
+					nodeRef,
+				);
 
 				superNodeId = resolvedNodeId;
 			}
@@ -144,6 +111,7 @@ export class LoaderStrategy extends SchemaLoaderStrategyBase<Draft201909Schema> 
 			const nodeRecursiveRef = selectNodeRecursiveRef(node);
 			if (nodeRecursiveRef != null) {
 				const resolvedNodeId = this.resolveRecursiveReferenceNodeId(
+					retrievalPairs,
 					nodeId,
 					nodeRecursiveRef,
 				);
@@ -166,6 +134,25 @@ export class LoaderStrategy extends SchemaLoaderStrategyBase<Draft201909Schema> 
 					compounds,
 				},
 			];
+		}
+	}
+
+	public *getDependencyRetrievalPairs(
+		rootNode: Draft201909Schema,
+		rootNodeUrl: URL,
+		retrievalUrl: URL,
+	): Iterable<readonly [URL, URL]> {
+		for (const [pointer, node] of selectAllSubNodesAndSelf("", rootNode)) {
+			const nodeRef = selectNodeRef(node);
+			if (nodeRef == null) {
+				continue;
+			}
+
+			const refNodeUrl = new URL(nodeRef, rootNodeUrl);
+			const refRetrievalUrl = new URL(nodeRef, retrievalUrl);
+			refRetrievalUrl.hash = "";
+
+			yield [refRetrievalUrl, refNodeUrl] as const;
 		}
 	}
 
@@ -564,17 +551,34 @@ export class LoaderStrategy extends SchemaLoaderStrategyBase<Draft201909Schema> 
 		super.indexNode(node, nodeRootUrl, nodePointer);
 	}
 
-	private resolveReferenceNodeId(nodeId: string, nodeRef: string) {
+	private resolveReferenceNodeId(
+		retrievalPairs: Array<[URL, URL]>,
+		nodeId: string,
+		nodeRef: string,
+	) {
+		const rootNodeRetrievalMap = new Map(
+			retrievalPairs.map(([retrievalUrl, rootNodeUrl]) => [
+				rootNodeUrl.toString(),
+				retrievalUrl,
+			]),
+		);
+		const retrievalRootNodeMap = new Map(
+			retrievalPairs.map(([retrievalUrl, rootNodeUrl]) => [
+				retrievalUrl.toString(),
+				rootNodeUrl,
+			]),
+		);
+
 		const nodeItem = this.getNodeItem(nodeId);
 
 		const nodeRootId = String(nodeItem.nodeRootUrl);
-		const nodeRetrievalUrl = this.context.getNodeRetrievalUrl(nodeRootId);
+		const nodeRetrievalUrl = rootNodeRetrievalMap.get(nodeRootId);
 
 		const nodeRefRetrievalUrl = new URL(nodeRef, nodeRetrievalUrl);
 		const hash = nodeRefRetrievalUrl.hash;
 		nodeRefRetrievalUrl.hash = "";
 		const nodeRefRetrievalId = String(nodeRefRetrievalUrl);
-		const nodeRefRootUrl = this.context.getNodeRootUrl(nodeRefRetrievalId);
+		const nodeRefRootUrl = retrievalRootNodeMap.get(nodeRefRetrievalId);
 
 		const resolvedNodeUrl = new URL(hash, nodeRefRootUrl);
 		let resolvedNodeId = String(resolvedNodeUrl);
@@ -589,19 +593,33 @@ export class LoaderStrategy extends SchemaLoaderStrategyBase<Draft201909Schema> 
 	}
 
 	private resolveRecursiveReferenceNodeId(
+		retrievalPairs: Array<[URL, URL]>,
 		nodeId: string,
 		nodeRecursiveRef: string,
 	) {
+		const rootNodeRetrievalMap = new Map(
+			retrievalPairs.map(([retrievalUrl, rootNodeUrl]) => [
+				rootNodeUrl.toString(),
+				retrievalUrl,
+			]),
+		);
+		const retrievalRootNodeMap = new Map(
+			retrievalPairs.map(([retrievalUrl, rootNodeUrl]) => [
+				retrievalUrl.toString(),
+				rootNodeUrl,
+			]),
+		);
+
 		const nodeItem = this.getNodeItem(nodeId);
 
 		const nodeRootId = String(nodeItem.nodeRootUrl);
-		const nodeRetrievalUrl = this.context.getNodeRetrievalUrl(nodeRootId);
+		const nodeRetrievalUrl = rootNodeRetrievalMap.get(nodeRootId);
 
 		const nodeRefRetrievalUrl = new URL(nodeRecursiveRef, nodeRetrievalUrl);
 		const hash = nodeRefRetrievalUrl.hash;
 		nodeRefRetrievalUrl.hash = "";
 		const nodeRefRetrievalId = String(nodeRefRetrievalUrl);
-		const nodeRefRootUrl = this.context.getNodeRootUrl(nodeRefRetrievalId);
+		const nodeRefRootUrl = retrievalRootNodeMap.get(nodeRefRetrievalId);
 
 		const resolvedNodeUrl = new URL(hash, nodeRefRootUrl);
 		let resolvedNodeId = String(resolvedNodeUrl);

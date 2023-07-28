@@ -28,22 +28,6 @@ export abstract class SchemaLoaderStrategyBase<N> extends LoaderStrategyBase<
 		retrievalUrl: URL,
 		referencingUrl: URL | null,
 	) {
-		for (const [
-			subNodeUrl,
-			subRetrievalUrl,
-		] of this.selectAllReferencedNodeUrls(
-			rootNode,
-			rootNodeUrl,
-			retrievalUrl,
-		)) {
-			this.context.scheduleLoadFromUrl(
-				subNodeUrl,
-				subRetrievalUrl,
-				rootNodeUrl,
-				this.metaSchemaId,
-			);
-		}
-
 		for (const [subPointer, subNode] of this.selectAllSubNodeEntriesAndSelf(
 			"",
 			rootNode,
@@ -80,12 +64,6 @@ export abstract class SchemaLoaderStrategyBase<N> extends LoaderStrategyBase<
 		nodePointer: string,
 		node: N,
 	): Iterable<readonly [string, N]>;
-
-	protected abstract selectAllReferencedNodeUrls(
-		rootNode: N,
-		rootNodeUrl: URL,
-		retrievalUrl: URL,
-	): Iterable<readonly [URL, URL]>;
 
 	protected selectRootNodeEntries(): Iterable<[URL, N]> {
 		return [...this.getRootNodeItems()].map(({ nodeUrl, node }) => [

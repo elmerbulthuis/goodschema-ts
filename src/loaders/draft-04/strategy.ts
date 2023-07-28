@@ -59,7 +59,7 @@ export class LoaderStrategy extends SchemaLoaderStrategyBase<
 		return nodeUrl;
 	}
 
-	public selectNodeUrl(node: Draft04Schema) {
+	protected selectNodeUrl(node: Draft04Schema) {
 		const nodeId = selectNodeId(node);
 		if (nodeId != null) {
 			const nodeUrl = new URL(nodeId);
@@ -67,56 +67,20 @@ export class LoaderStrategy extends SchemaLoaderStrategyBase<
 		}
 	}
 
-	public selectAllSubNodeEntriesAndSelf(
+	protected selectAllSubNodeEntriesAndSelf(
 		nodePointer: string,
 		node: Draft04Schema,
 	): Iterable<readonly [string, boolean | Draft04Schema]> {
 		return selectAllSubNodesAndSelf(nodePointer, node);
-	}
-	public *selectAllReferencedNodeUrls(
-		rootNode: Draft04Schema,
-		rootNodeUrl: URL,
-		retrievalUrl: URL,
-	): Iterable<readonly [URL, URL]> {
-		for (const [pointer, node] of selectAllSubNodesAndSelf("", rootNode)) {
-			const nodeRef = selectNodeRef(node);
-			if (nodeRef == null) {
-				continue;
-			}
-
-			const refNodeUrl = new URL(nodeRef, rootNodeUrl);
-			const refRetrievalUrl = new URL(nodeRef, retrievalUrl);
-			refRetrievalUrl.hash = "";
-
-			yield [refNodeUrl, refRetrievalUrl] as const;
-		}
-	}
-
-	protected async loadFromNode(
-		node: Draft04Schema,
-		nodeUrl: URL,
-		retrievalUrl: URL,
-	) {
-		const nodeRef = selectNodeRef(node);
-
-		if (nodeRef != null) {
-			const nodeRefUrl = new URL(nodeRef, nodeUrl);
-			const retrievalRefUrl = new URL(nodeRef, retrievalUrl);
-			retrievalRefUrl.hash = "";
-			await this.context.loadFromUrl(
-				nodeRefUrl,
-				retrievalRefUrl,
-				nodeUrl,
-				this.metaSchemaId,
-			);
-		}
 	}
 
 	//#endregion
 
 	//#region strategy implementation
 
-	public *getNodeEntries(): Iterable<[string, intermediate.Node]> {
+	public *getNodeEntries(
+		retrievalPairs: Array<[URL, URL]>,
+	): Iterable<[string, intermediate.Node]> {
 		for (const [nodeId, { node }] of this.getNodeItemEntries()) {
 			const title = selectNodeTitle(node) ?? "";
 			const description = selectNodeDescription(node) ?? "";
@@ -128,7 +92,11 @@ export class LoaderStrategy extends SchemaLoaderStrategyBase<
 			const nodeRef = selectNodeRef(node);
 
 			if (nodeRef != null) {
-				const resolvedNodeId = this.resolveReferenceNodeId(nodeId, nodeRef);
+				const resolvedNodeId = this.resolveReferenceNodeId(
+					retrievalPairs,
+					nodeId,
+					nodeRef,
+				);
 
 				superNodeId = resolvedNodeId;
 			}
@@ -148,6 +116,25 @@ export class LoaderStrategy extends SchemaLoaderStrategyBase<
 					compounds,
 				},
 			];
+		}
+	}
+
+	public *getDependencyRetrievalPairs(
+		rootNode: Draft04Schema,
+		rootNodeUrl: URL,
+		retrievalUrl: URL,
+	): Iterable<readonly [URL, URL]> {
+		for (const [pointer, node] of selectAllSubNodesAndSelf("", rootNode)) {
+			const nodeRef = selectNodeRef(node);
+			if (nodeRef == null) {
+				continue;
+			}
+
+			const refNodeUrl = new URL(nodeRef, rootNodeUrl);
+			const refRetrievalUrl = new URL(nodeRef, retrievalUrl);
+			refRetrievalUrl.hash = "";
+
+			yield [refRetrievalUrl, refNodeUrl] as const;
 		}
 	}
 
@@ -490,11 +477,28 @@ export class LoaderStrategy extends SchemaLoaderStrategyBase<
 
 	//#region references
 
-	private resolveReferenceNodeId(nodeId: string, nodeRef: string) {
+	private resolveReferenceNodeId(
+		retrievalPairs: Array<[URL, URL]>,
+		nodeId: string,
+		nodeRef: string,
+	) {
+		const rootNodeRetrievalMap = new Map(
+			retrievalPairs.map(([retrievalUrl, rootNodeUrl]) => [
+				rootNodeUrl.toString(),
+				retrievalUrl,
+			]),
+		);
+		const retrievalRootNodeMap = new Map(
+			retrievalPairs.map(([retrievalUrl, rootNodeUrl]) => [
+				retrievalUrl.toString(),
+				rootNodeUrl,
+			]),
+		);
+
 		const nodeItem = this.getNodeItem(nodeId);
 
 		const nodeRootId = String(nodeItem.nodeRootUrl);
-		const nodeRetrievalUrl = this.context.getNodeRetrievalUrl(nodeRootId);
+		const nodeRetrievalUrl = rootNodeRetrievalMap.get(nodeRootId);
 
 		const nodeRefRetrievalUrl = new URL(nodeRef, nodeRetrievalUrl);
 		let hash = nodeRefRetrievalUrl.hash;
@@ -503,7 +507,7 @@ export class LoaderStrategy extends SchemaLoaderStrategyBase<
 		}
 		nodeRefRetrievalUrl.hash = "";
 		const nodeRefRetrievalId = String(nodeRefRetrievalUrl);
-		const nodeRefRootUrl = this.context.getNodeRootUrl(nodeRefRetrievalId);
+		const nodeRefRootUrl = retrievalRootNodeMap.get(nodeRefRetrievalId);
 
 		const resolvedNodeUrl = new URL(hash, nodeRefRootUrl);
 		const resolvedNodeId = String(resolvedNodeUrl);

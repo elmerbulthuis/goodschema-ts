@@ -14,9 +14,7 @@ export class LoaderContext {
 	private readonly fetchCommandDone = new Set<string>();
 	private processFetchCommandQueuePromise: Promise<void> | null = null;
 
-	private readonly rootNodeMetaMap = new Map<string, string>();
-	private readonly retrievalRootNodeMap = new Map<string, URL>();
-	private readonly rootNodeRetrievalMap = new Map<string, URL>();
+	private readonly retrievalPairs = new Array<readonly [URL, URL]>();
 
 	private strategies: Record<string, LoaderStrategyBase<unknown, unknown>> = {};
 
@@ -24,7 +22,6 @@ export class LoaderContext {
 		metaSchemaId: string,
 		strategy: LoaderStrategyBase<unknown, unknown>,
 	) {
-		strategy.registerContext(this);
 		this.strategies[metaSchemaId] = strategy;
 	}
 
@@ -36,9 +33,9 @@ export class LoaderContext {
 		};
 	}
 
-	public *getNodeEntries(): Iterable<[string, intermediate.Node]> {
+	public *getNodeEntries(): Iterable<readonly [string, intermediate.Node]> {
 		for (const strategy of Object.values(this.strategies)) {
-			yield* strategy.getNodeEntries();
+			yield* strategy.getNodeEntries(this.retrievalPairs);
 		}
 	}
 
@@ -70,14 +67,6 @@ export class LoaderContext {
 			defaultMetaSchemaId,
 		});
 		this.kickProcessFetchCommandQueue();
-	}
-
-	public getNodeRetrievalUrl(nodeRootId: string) {
-		return this.rootNodeRetrievalMap.get(nodeRootId);
-	}
-
-	public getNodeRootUrl(nodeRetrievalId: string) {
-		return this.retrievalRootNodeMap.get(nodeRetrievalId);
 	}
 
 	private kickProcessFetchCommandQueue() {
@@ -128,12 +117,7 @@ export class LoaderContext {
 		*/
 		rootNodeUrl = strategy.makeRootNodeUrl(rootNode, retrievalUrl);
 
-		const retrievalId = String(retrievalUrl);
-		const rootNodeId = String(rootNodeUrl);
-
-		this.retrievalRootNodeMap.set(retrievalId, rootNodeUrl);
-		this.rootNodeRetrievalMap.set(rootNodeId, retrievalUrl);
-		this.rootNodeMetaMap.set(rootNodeId, metaSchemaId);
+		this.retrievalPairs.push([retrievalUrl, rootNodeUrl]);
 
 		strategy.initializeRootNode(
 			rootNode,
@@ -141,5 +125,21 @@ export class LoaderContext {
 			retrievalUrl,
 			referencingUrl,
 		);
+
+		for (const [
+			subRetrievalUrl,
+			subNodeUrl,
+		] of strategy.getDependencyRetrievalPairs(
+			rootNode,
+			rootNodeUrl,
+			retrievalUrl,
+		)) {
+			this.scheduleLoadFromUrl(
+				subNodeUrl,
+				subRetrievalUrl,
+				rootNodeUrl,
+				metaSchemaId,
+			);
+		}
 	}
 }

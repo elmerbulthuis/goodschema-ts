@@ -25,6 +25,14 @@ export class LoaderStrategy extends LoaderStrategyBase<
 		return this.nodeMap.entries();
 	}
 
+	public *getDependencyRetrievalPairs(
+		rootNode: intermediate.Node,
+		rootNodeUrl: URL,
+		retrievalUrl: URL,
+	): Iterable<readonly [URL, URL]> {
+		//
+	}
+
 	public initializeRootNode(
 		rootNode: intermediate.SchemaJson,
 		rootNodeUrl: URL,

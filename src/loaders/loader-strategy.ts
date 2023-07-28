@@ -1,6 +1,4 @@
 import * as intermediate from "@jns42/jns42-schema-intermediate-a";
-import assert from "node:assert";
-import { LoaderContext } from "./loader-context.js";
 
 export interface RootNodeItem<N> {
 	node: N;
@@ -11,24 +9,18 @@ export interface RootNodeItem<N> {
 export abstract class LoaderStrategyBase<R, N> {
 	protected abstract readonly metaSchemaId: string;
 
-	public abstract getNodeEntries(): Iterable<[string, intermediate.Node]>;
+	public abstract getNodeEntries(
+		retrievalPairs: Array<readonly [URL, URL]>,
+	): Iterable<readonly [string, intermediate.Node]>;
 	public abstract isRootNode(node: unknown): node is R;
 	public abstract makeRootNodeUrl(rootNode: R, nodeRootUrl: URL): URL;
+	public abstract getDependencyRetrievalPairs(
+		rootNode: N,
+		rootNodeUrl: URL,
+		retrievalUrl: URL,
+	): Iterable<readonly [URL, URL]>;
 
 	private readonly rootNodeMap = new Map<string, RootNodeItem<R>>();
-
-	//#region context
-
-	private maybeContext?: LoaderContext;
-	protected get context() {
-		assert(this.maybeContext != null);
-		return this.maybeContext;
-	}
-	public registerContext(context: LoaderContext) {
-		this.maybeContext = context;
-	}
-
-	//#endregion
 
 	public initializeRootNode(
 		rootNode: R,

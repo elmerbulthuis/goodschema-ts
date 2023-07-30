@@ -3,6 +3,6 @@
 	"description": "So this is an array!",
 	"type": ["array"],
 	"items": {
-		"$ref": "simple-object.json"
+		"$ref": "simple-object.json#"
 	}
 }

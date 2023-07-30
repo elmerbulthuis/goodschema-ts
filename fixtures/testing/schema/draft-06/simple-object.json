@@ -5,17 +5,13 @@
 	"required": ["id"],
 	"properties": {
 		"id": {
-			"description": "An identity",
-			"type": "integer",
-			"exclusiveMinimum": 0,
-			"examples": [1, 2, 3]
+			"$ref": "./models.json#/definitions/id"
 		},
 		"name": {
-			"description": "A name",
-			"type": "string",
-			"minLength": 2,
-			"maxLength": 20,
-			"examples": ["Jack", "John", "Elmer"]
+			"$ref": "./models.json#/definitions/name"
+		},
+		"child": {
+			"$ref": "./models.json#/definitions/child"
 		}
 	},
 	"examples": [

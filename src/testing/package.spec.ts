@@ -5,14 +5,14 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import ts from "typescript";
+import * as schemaDraft04 from "../documents/draft-04/index.js";
+import * as schemaDraft06 from "../documents/draft-06/index.js";
+import * as schemaDraft07 from "../documents/draft-07/index.js";
+import * as schema201909 from "../documents/draft-2019-09/index.js";
+import * as schema202012 from "../documents/draft-2020-12/index.js";
+import { DocumentContext } from "../documents/index.js";
+import * as schemaIntermediateA from "../documents/intermediate-a/index.js";
 import { generatePackage } from "../generators/index.js";
-import * as schemaDraft04 from "../loaders/draft-04/index.js";
-import * as schemaDraft06 from "../loaders/draft-06/index.js";
-import * as schemaDraft07 from "../loaders/draft-07/index.js";
-import * as schema201909 from "../loaders/draft-2019-09/index.js";
-import * as schema202012 from "../loaders/draft-2020-12/index.js";
-import { LoaderContext } from "../loaders/index.js";
-import * as schemaIntermediateA from "../loaders/intermediate-a/index.js";
 import { Namer, projectRoot } from "../utils/index.js";
 
 const packageNames = [
@@ -68,30 +68,36 @@ async function runTest(schemaName: string, packageName: string) {
 	}
 
 	await test("generate package", async () => {
-		const context = new LoaderContext();
-		context.registerStrategy(
+		const context = new DocumentContext();
+		context.registerFactory(
 			schema202012.metaSchemaId,
-			new schema202012.LoaderStrategy(),
+			({ givenUrl, antecedentUrl, documentNode: rootNode }) =>
+				new schema202012.Document(givenUrl, antecedentUrl, rootNode, context),
 		);
-		context.registerStrategy(
+		context.registerFactory(
 			schema201909.metaSchemaId,
-			new schema201909.LoaderStrategy(),
+			({ givenUrl, antecedentUrl, documentNode: rootNode }) =>
+				new schema201909.Document(givenUrl, antecedentUrl, rootNode, context),
 		);
-		context.registerStrategy(
+		context.registerFactory(
 			schemaDraft07.metaSchemaId,
-			new schemaDraft07.LoaderStrategy(),
+			({ givenUrl, antecedentUrl, documentNode: rootNode }) =>
+				new schemaDraft07.Document(givenUrl, antecedentUrl, rootNode, context),
 		);
-		context.registerStrategy(
+		context.registerFactory(
 			schemaDraft06.metaSchemaId,
-			new schemaDraft06.LoaderStrategy(),
+			({ givenUrl, antecedentUrl, documentNode: rootNode }) =>
+				new schemaDraft06.Document(givenUrl, antecedentUrl, rootNode, context),
 		);
-		context.registerStrategy(
+		context.registerFactory(
 			schemaDraft04.metaSchemaId,
-			new schemaDraft04.LoaderStrategy(),
+			({ givenUrl, antecedentUrl, documentNode: rootNode }) =>
+				new schemaDraft04.Document(givenUrl, antecedentUrl, rootNode, context),
 		);
-		context.registerStrategy(
+		context.registerFactory(
 			schemaIntermediateA.metaSchemaId,
-			new schemaIntermediateA.LoaderStrategy(),
+			({ givenUrl, documentNode: rootNode }) =>
+				new schemaIntermediateA.Document(givenUrl, rootNode),
 		);
 
 		await context.loadFromUrl(

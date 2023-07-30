@@ -10,6 +10,7 @@ async function main() {
 	const program = yargs(hideBin(process.argv));
 
 	programs.configurePackageProgram(program);
+	programs.configureIntermediateProgram(program);
 
 	program.parse();
 }

@@ -236,7 +236,7 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
 		const members = Object.entries(nodeIds).map(([name, nodeId]) =>
 			this.factory.createPropertySignature(
 				undefined,
-				this.factory.createIdentifier(name),
+				this.factory.createStringLiteral(name),
 				required.has(name)
 					? undefined
 					: this.factory.createToken(ts.SyntaxKind.QuestionToken),

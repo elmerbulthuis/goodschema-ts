@@ -47,7 +47,7 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
 			yield f.createFunctionDeclaration(
 				undefined,
 				undefined,
-				`is${camelcase(typeNode.type, {
+				`_is${camelcase(typeNode.type, {
 					pascalCase: true,
 				})}${typeName}`,
 				undefined,
@@ -76,7 +76,7 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
 			yield f.createFunctionDeclaration(
 				undefined,
 				undefined,
-				`is${camelcase(compoundNode.type, {
+				`_is${camelcase(compoundNode.type, {
 					pascalCase: true,
 				})}${typeName}`,
 				undefined,
@@ -136,7 +136,7 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
 								(type) =>
 									f.createCallExpression(
 										f.createIdentifier(
-											`is${camelcase(type.type, {
+											`_is${camelcase(type.type, {
 												pascalCase: true,
 											})}${typeName}`,
 										),
@@ -167,7 +167,7 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
 								(compound) =>
 									f.createCallExpression(
 										f.createIdentifier(
-											`is${camelcase(compound.type, {
+											`_is${camelcase(compound.type, {
 												pascalCase: true,
 											})}${typeName}`,
 										),

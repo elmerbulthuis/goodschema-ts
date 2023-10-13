@@ -56,66 +56,6 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "package draft-2019-09",
-			"program": "${workspaceFolder}/src/program.ts",
-			"args": [
-				"package",
-				"fixtures/schema/draft-2019-09/schema",
-				"--package-directory",
-				".package/schema/draft-2019-09",
-				"--package-name",
-				"draft-2019-09",
-				"--package-version",
-				"0.0.0"
-			],
-			"cwd": "${workspaceFolder}",
-			"sourceMaps": true,
-			"outFiles": ["${workspaceFolder}/out/**/*.js"],
-			"preLaunchTask": "watch"
-		},
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "package draft-07",
-			"program": "${workspaceFolder}/src/program.ts",
-			"args": [
-				"package",
-				"fixtures/schema/draft-07/schema",
-				"--package-directory",
-				".package/schema/draft-07",
-				"--package-name",
-				"draft-07",
-				"--package-version",
-				"0.0.0"
-			],
-			"cwd": "${workspaceFolder}",
-			"sourceMaps": true,
-			"outFiles": ["${workspaceFolder}/out/**/*.js"],
-			"preLaunchTask": "watch"
-		},
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "package draft-06",
-			"program": "${workspaceFolder}/src/program.ts",
-			"args": [
-				"package",
-				"fixtures/schema/draft-06/schema",
-				"--package-directory",
-				".package/schema/draft-06",
-				"--package-name",
-				"draft-06",
-				"--package-version",
-				"0.0.0"
-			],
-			"cwd": "${workspaceFolder}",
-			"sourceMaps": true,
-			"outFiles": ["${workspaceFolder}/out/**/*.js"],
-			"preLaunchTask": "watch"
-		},
-		{
-			"type": "node",
-			"request": "launch",
 			"name": "package draft-04",
 			"program": "${workspaceFolder}/src/program.ts",
 			"args": [
@@ -125,6 +65,26 @@
 				".package/schema/draft-04",
 				"--package-name",
 				"draft-04",
+				"--package-version",
+				"0.0.0"
+			],
+			"cwd": "${workspaceFolder}",
+			"sourceMaps": true,
+			"outFiles": ["${workspaceFolder}/out/**/*.js"],
+			"preLaunchTask": "watch"
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "package oas v3.1",
+			"program": "${workspaceFolder}/src/program.ts",
+			"args": [
+				"package",
+				"fixtures/schema/oas-v3.1/schema.json",
+				"--package-directory",
+				".package/schema/oas-v3.1",
+				"--package-name",
+				"oas-v3.1",
 				"--package-version",
 				"0.0.0"
 			],

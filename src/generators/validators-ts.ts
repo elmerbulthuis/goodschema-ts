@@ -594,7 +594,7 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
 
     if (assertions.options != null) {
       yield f.createIfStatement(
-        (assertions.options as number[]) // TODO remove cast
+        assertions.options
           .map((option) =>
             f.createBinaryExpression(
               f.createIdentifier("value"),

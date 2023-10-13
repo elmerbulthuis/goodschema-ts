@@ -190,7 +190,7 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
   }
   protected generateIntegerTypeDefinition(nodeId: string): ts.TypeNode {
     let node = this.nodes[nodeId];
-    let options = node.assertions.integer?.options as number[]; // TODO remove cast
+    let options = node.assertions.integer?.options;
 
     if (options == null) {
       return this.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword);

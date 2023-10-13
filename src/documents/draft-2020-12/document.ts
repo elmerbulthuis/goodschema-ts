@@ -114,7 +114,10 @@ export class Document extends SchemaDocumentBase<Node> {
 
     const types = this.selectNodeTypes(node);
     if (types != null) {
-      return types.map((type) => this.mapType(type as string)); // TODO remove cast
+      return types
+        .filter((type) => type != null)
+        .map((type) => type!)
+        .map((type) => this.mapType(type));
     }
 
     return this.guessTypes(node);
@@ -136,7 +139,7 @@ export class Document extends SchemaDocumentBase<Node> {
     if (constValue != null) {
       options = [constValue];
     } else if (enumValues != null) {
-      options = [...enumValues];
+      options = [...enumValues].filter((value) => typeof value === "boolean");
     }
 
     return {
@@ -155,7 +158,9 @@ export class Document extends SchemaDocumentBase<Node> {
     if (constValue != null) {
       options = [constValue];
     } else if (enumValues != null) {
-      options = [...enumValues];
+      options = [...enumValues].filter(
+        (value) => typeof value === "number" && value % 1 === 0,
+      );
     }
 
     const minimumInclusive = this.selectValidationMinimumInclusive(node);
@@ -185,7 +190,7 @@ export class Document extends SchemaDocumentBase<Node> {
     if (constValue != null) {
       options = [constValue];
     } else if (enumValues != null) {
-      options = [...enumValues];
+      options = [...enumValues].filter((value) => typeof value === "number");
     }
 
     const minimumInclusive = this.selectValidationMinimumInclusive(node);
@@ -215,7 +220,7 @@ export class Document extends SchemaDocumentBase<Node> {
     if (constValue != null) {
       options = [constValue];
     } else if (enumValues != null) {
-      options = [...enumValues];
+      options = [...enumValues].filter((value) => typeof value === "string");
     }
 
     const minimumLength = this.selectValidationMinimumLength(node);

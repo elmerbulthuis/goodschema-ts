@@ -1,10 +1,10 @@
-import * as schemaIntermediateB from "@jns42/jns42-schema-intermediate-b";
-import { DocumentContext } from "../document-context.js";
-import { SchemaDocumentBase } from "../schema-document-base.js";
 import {
   Draft202012Schema as Node,
   isDraft202012Schema as isNode,
-} from "./schema.js";
+} from "@jns42/jns42-schema-draft-2020-12";
+import * as schemaIntermediateB from "@jns42/jns42-schema-intermediate-b";
+import { DocumentContext } from "../document-context.js";
+import { SchemaDocumentBase } from "../schema-document-base.js";
 
 export class Document extends SchemaDocumentBase<Node> {
   private readonly anchorMap = new Map<string, string>();

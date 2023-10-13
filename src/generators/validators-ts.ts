@@ -1248,6 +1248,22 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
       );
     }
 
+    if (node.applicators.propertyNames != null) {
+      const typeName = this.getTypeName(node.applicators.propertyNames);
+
+      yield f.createIfStatement(
+        f.createPrefixUnaryExpression(
+          ts.SyntaxKind.ExclamationToken,
+          f.createCallExpression(
+            f.createIdentifier(`is${typeName}`),
+            undefined,
+            [f.createIdentifier("propertyName")],
+          ),
+        ),
+        f.createBlock([f.createReturnStatement(f.createFalse())], true),
+      );
+    }
+
     yield f.createVariableStatement(
       undefined,
       f.createVariableDeclarationList(
@@ -1271,22 +1287,6 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
         ts.NodeFlags.Const,
       ),
     );
-
-    if (node.applicators.propertyNames != null) {
-      const typeName = this.getTypeName(node.applicators.propertyNames);
-
-      yield f.createIfStatement(
-        f.createPrefixUnaryExpression(
-          ts.SyntaxKind.ExclamationToken,
-          f.createCallExpression(
-            f.createIdentifier(`is${typeName}`),
-            undefined,
-            [f.createIdentifier("propertyValue")],
-          ),
-        ),
-        f.createBlock([f.createReturnStatement(f.createFalse())], true),
-      );
-    }
 
     if (node.applicators.mapProperties != null) {
       const typeName = this.getTypeName(node.applicators.mapProperties);

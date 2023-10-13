@@ -1,7 +1,7 @@
-import { Draft04Schema, isDraft04Schema } from "@jns42/jns42-schema-draft-04";
 import * as schemaIntermediateB from "@jns42/jns42-schema-intermediate-b";
 import { DocumentContext } from "../document-context.js";
 import { SchemaDocumentBase } from "../schema-document-base.js";
+import { Draft04Schema, isDraft04Schema } from "./schema.js";
 
 type Node = Draft04Schema | boolean;
 
@@ -145,7 +145,7 @@ export class Document extends SchemaDocumentBase<Node> {
 
     if (enumValues != null) {
       options = [...enumValues].filter(
-        (value) => typeof value === "number" && value % 1 === 0,
+        (value) => typeof value === "number" && value,
       ) as number[];
     }
 

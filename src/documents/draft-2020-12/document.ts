@@ -1,10 +1,10 @@
-import {
-  Draft202012Schema as Node,
-  isDraft202012Schema as isNode,
-} from "@jns42/jns42-schema-draft-2020-12";
 import * as schemaIntermediateB from "@jns42/jns42-schema-intermediate-b";
 import { DocumentContext } from "../document-context.js";
 import { SchemaDocumentBase } from "../schema-document-base.js";
+import {
+  Draft202012Schema as Node,
+  isDraft202012Schema as isNode,
+} from "./schema.js";
 
 export class Document extends SchemaDocumentBase<Node> {
   private readonly anchorMap = new Map<string, string>();
@@ -136,7 +136,7 @@ export class Document extends SchemaDocumentBase<Node> {
 
     let options: Array<boolean> | undefined;
 
-    if (constValue != null) {
+    if (constValue != null && typeof constValue === "boolean") {
       options = [constValue];
     } else if (enumValues != null) {
       options = [...enumValues].filter((value) => typeof value === "boolean");
@@ -155,12 +155,10 @@ export class Document extends SchemaDocumentBase<Node> {
 
     let options: Array<number> | undefined;
 
-    if (constValue != null) {
+    if (constValue != null && typeof constValue === "number") {
       options = [constValue];
     } else if (enumValues != null) {
-      options = [...enumValues].filter(
-        (value) => typeof value === "number" && value % 1 === 0,
-      );
+      options = [...enumValues].filter((value) => typeof value === "number");
     }
 
     const minimumInclusive = this.selectValidationMinimumInclusive(node);
@@ -187,7 +185,7 @@ export class Document extends SchemaDocumentBase<Node> {
 
     let options: Array<number> | undefined;
 
-    if (constValue != null) {
+    if (constValue != null && typeof constValue === "number") {
       options = [constValue];
     } else if (enumValues != null) {
       options = [...enumValues].filter((value) => typeof value === "number");
@@ -217,7 +215,7 @@ export class Document extends SchemaDocumentBase<Node> {
 
     let options: Array<string> | undefined;
 
-    if (constValue != null) {
+    if (constValue != null && typeof constValue === "string") {
       options = [constValue];
     } else if (enumValues != null) {
       options = [...enumValues].filter((value) => typeof value === "string");

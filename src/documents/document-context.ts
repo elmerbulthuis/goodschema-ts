@@ -39,8 +39,8 @@ export class DocumentContext {
 
   public getIntermediateData(): schemaIntermediateB.SchemaJson {
     return {
-      // $schema:
-      // 	"https://schema.JsonSchema42.org/jns42-intermediate-b/schema.json",
+      $schema:
+        "https://schema.JsonSchema42.org/jns42-intermediate-b/schema.json",
       nodes: Object.fromEntries(this.getIntermediateNodeEntries()),
     };
   }

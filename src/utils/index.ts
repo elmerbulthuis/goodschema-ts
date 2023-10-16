@@ -1,3 +1,4 @@
+export * from "./choose.js";
 export * from "./file.js";
 export * from "./literal.js";
 export * from "./load.js";

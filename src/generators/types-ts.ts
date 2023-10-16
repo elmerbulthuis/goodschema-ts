@@ -1,4 +1,5 @@
 import ts from "typescript";
+import { choose } from "../main.js";
 import { CodeGeneratorBase } from "./code-generator-base.js";
 
 export class TypesTsCodeGenerator extends CodeGeneratorBase {
@@ -325,12 +326,19 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
     return this.factory.createUnionTypeNode(types);
   }
   protected generateAnyOfCompoundDefinition(anyOf: string[]) {
-    const types = anyOf
-      .map((nodeId) => this.generateTypeReference(nodeId))
-      .map((typeNode) =>
-        this.factory.createTypeReferenceNode("Partial", [typeNode]),
-      );
-    return this.factory.createIntersectionTypeNode(types);
+    const unionTypes = new Array<ts.TypeNode>();
+    for (let count = 0; count < anyOf.length; count++) {
+      for (const intersectionTypes of choose(anyOf, count + 1)) {
+        unionTypes.push(
+          this.factory.createIntersectionTypeNode(
+            intersectionTypes.map((nodeId) =>
+              this.generateTypeReference(nodeId),
+            ),
+          ),
+        );
+      }
+    }
+    return this.factory.createUnionTypeNode(unionTypes);
   }
   protected generateAllOfCompoundDefinition(allOf: string[]) {
     const types = allOf.map((nodeId) => this.generateTypeReference(nodeId));

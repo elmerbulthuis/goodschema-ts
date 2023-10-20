@@ -1604,6 +1604,6 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
 }
 
 function formatRegExp(pattern: string) {
-  const escapedPattern = pattern.replaceAll(/[/]/g, "\\$0");
+  const escapedPattern = pattern.replaceAll(/([/])/g, "\\$1");
   return `/${escapedPattern}/`;
 }

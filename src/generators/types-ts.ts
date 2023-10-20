@@ -280,20 +280,30 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
         ? this.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
         : this.generateTypeReference(propertyNames);
 
-    if (mapProperties != null || patternProperties != null) {
-      const elements = [
-        ...Object.values(objectProperties ?? {}),
-        ...Object.values(patternProperties ?? {}),
-        mapProperties,
-      ]
-        .filter((nodeId) => nodeId != null)
-        .map((nodeId) => nodeId as string)
-        .map((nodeId) => this.generateTypeReference(nodeId));
+    const unionElements = new Array<ts.TypeNode>();
 
-      return this.factory.createTypeReferenceNode(
-        this.factory.createIdentifier("Record"),
-        [propertyNameElement, this.factory.createUnionTypeNode(elements)],
+    if (mapProperties != null) {
+      const typeElement = this.generateTypeReference(mapProperties);
+
+      unionElements.push(
+        this.factory.createTypeReferenceNode(
+          this.factory.createIdentifier("Record"),
+          [propertyNameElement, typeElement],
+        ),
       );
+    }
+
+    if (patternProperties != null) {
+      for (const patternProperty of Object.values(patternProperties)) {
+        const typeElement = this.generateTypeReference(patternProperty);
+
+        unionElements.push(
+          this.factory.createTypeReferenceNode(
+            this.factory.createIdentifier("Record"),
+            [propertyNameElement, typeElement],
+          ),
+        );
+      }
     }
 
     if (objectProperties != null) {
@@ -307,10 +317,10 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
           this.generateTypeReference(nodeId),
         ),
       );
-      return this.factory.createTypeLiteralNode(members);
+      unionElements.push(this.factory.createTypeLiteralNode(members));
     }
 
-    {
+    if (unionElements.length === 0) {
       const element = this.factory.createKeywordTypeNode(
         ts.SyntaxKind.UnknownKeyword,
       );
@@ -318,6 +328,14 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
         this.factory.createIdentifier("Record"),
         [propertyNameElement, element],
       );
+    }
+
+    if (unionElements.length == 1) {
+      return unionElements[0];
+    }
+
+    {
+      return this.factory.createUnionTypeNode(unionElements);
     }
   }
 

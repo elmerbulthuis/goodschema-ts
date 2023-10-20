@@ -19,4 +19,17 @@ export abstract class CodeGeneratorBase {
     const name = this.getTypeName(nodeId);
     return f.createTypeReferenceNode(f.createIdentifier(name));
   }
+
+  protected joinExpressions(
+    expressions: ts.Expression[],
+    glue: ts.BinaryOperator | ts.BinaryOperatorToken,
+  ) {
+    const { factory: f } = this;
+
+    if (expressions.length === 1) {
+      return expressions[0];
+    }
+
+    return expressions.reduce((a, b) => f.createBinaryExpression(a, glue, b));
+  }
 }

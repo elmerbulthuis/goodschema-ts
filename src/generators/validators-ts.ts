@@ -274,8 +274,8 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
         f.createPrefixUnaryExpression(
           ts.SyntaxKind.ExclamationToken,
           f.createParenthesizedExpression(
-            node.types
-              .map(
+            this.joinExpressions(
+              node.types.map(
                 (type) =>
                   f.createCallExpression(
                     f.createIdentifier(
@@ -286,14 +286,9 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
                     undefined,
                     [f.createIdentifier("value")],
                   ) as ts.Expression,
-              )
-              .reduce((a, b) =>
-                f.createBinaryExpression(
-                  a,
-                  f.createToken(ts.SyntaxKind.BarBarToken),
-                  b,
-                ),
               ),
+              f.createToken(ts.SyntaxKind.BarBarToken),
+            ),
           ),
         ),
         f.createBlock([f.createReturnStatement(f.createFalse())], true),
@@ -475,23 +470,18 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
       f.createBlock([f.createReturnStatement(f.createFalse())], true),
     );
 
-    if (assertions.options != null) {
+    if (assertions.options != null && assertions.options.length > 0) {
       yield f.createIfStatement(
-        assertions.options
-          .map((option) =>
+        this.joinExpressions(
+          assertions.options.map((option) =>
             f.createBinaryExpression(
               f.createIdentifier("value"),
               f.createToken(ts.SyntaxKind.ExclamationEqualsEqualsToken),
               option ? f.createTrue() : f.createFalse(),
             ),
-          )
-          .reduce((a, b) =>
-            f.createBinaryExpression(
-              a,
-              f.createToken(ts.SyntaxKind.AmpersandAmpersandToken),
-              b,
-            ),
           ),
+          f.createToken(ts.SyntaxKind.AmpersandAmpersandToken),
+        ),
         f.createBlock([f.createReturnStatement(f.createFalse())], true),
       );
     }
@@ -592,23 +582,18 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
       );
     }
 
-    if (assertions.options != null) {
+    if (assertions.options != null && assertions.options.length > 0) {
       yield f.createIfStatement(
-        assertions.options
-          .map((option) =>
+        this.joinExpressions(
+          assertions.options.map((option) =>
             f.createBinaryExpression(
               f.createIdentifier("value"),
               f.createToken(ts.SyntaxKind.ExclamationEqualsEqualsToken),
               f.createNumericLiteral(option),
             ),
-          )
-          .reduce((a, b) =>
-            f.createBinaryExpression(
-              a,
-              f.createToken(ts.SyntaxKind.AmpersandAmpersandToken),
-              b,
-            ),
           ),
+          f.createToken(ts.SyntaxKind.AmpersandAmpersandToken),
+        ),
         f.createBlock([f.createReturnStatement(f.createFalse())], true),
       );
     }
@@ -696,23 +681,18 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
       );
     }
 
-    if (assertions.options != null) {
+    if (assertions.options != null && assertions.options.length > 0) {
       yield f.createIfStatement(
-        assertions.options
-          .map((option) =>
+        this.joinExpressions(
+          assertions.options.map((option) =>
             f.createBinaryExpression(
               f.createIdentifier("value"),
               f.createToken(ts.SyntaxKind.ExclamationEqualsEqualsToken),
               f.createNumericLiteral(option),
             ),
-          )
-          .reduce((a, b) =>
-            f.createBinaryExpression(
-              a,
-              f.createToken(ts.SyntaxKind.AmpersandAmpersandToken),
-              b,
-            ),
           ),
+          f.createToken(ts.SyntaxKind.AmpersandAmpersandToken),
+        ),
         f.createBlock([f.createReturnStatement(f.createFalse())], true),
       );
     }
@@ -782,23 +762,18 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
       );
     }
 
-    if (assertions.options != null) {
+    if (assertions.options != null && assertions.options.length > 0) {
       yield f.createIfStatement(
-        assertions.options
-          .map((option) =>
+        this.joinExpressions(
+          assertions.options.map((option) =>
             f.createBinaryExpression(
               f.createIdentifier("value"),
               f.createToken(ts.SyntaxKind.ExclamationEqualsEqualsToken),
               f.createStringLiteral(option),
             ),
-          )
-          .reduce((a, b) =>
-            f.createBinaryExpression(
-              a,
-              f.createToken(ts.SyntaxKind.AmpersandAmpersandToken),
-              b,
-            ),
           ),
+          f.createToken(ts.SyntaxKind.AmpersandAmpersandToken),
+        ),
         f.createBlock([f.createReturnStatement(f.createFalse())], true),
       );
     }

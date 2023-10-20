@@ -874,7 +874,7 @@ export abstract class SchemaDocumentBase<
     }
 
     if (nodeEnums != null) {
-      for (const nodeEnum in nodeEnums) {
+      for (const nodeEnum of nodeEnums) {
         switch (typeof nodeEnum) {
           case "number":
             types.add("number");

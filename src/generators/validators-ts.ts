@@ -749,9 +749,7 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
           ts.SyntaxKind.ExclamationToken,
           f.createCallExpression(
             f.createPropertyAccessExpression(
-              f.createRegularExpressionLiteral(
-                formatRegExp(assertions.valuePattern),
-              ),
+              this.createRegExpExpression(assertions.valuePattern),
               f.createIdentifier("test"),
             ),
             undefined,
@@ -1265,7 +1263,7 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
         yield f.createIfStatement(
           f.createCallExpression(
             f.createPropertyAccessExpression(
-              f.createRegularExpressionLiteral(formatRegExp(pattern)),
+              this.createRegExpExpression(pattern),
               f.createIdentifier("test"),
             ),
             undefined,
@@ -1601,9 +1599,13 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
 
     yield f.createReturnStatement(f.createTrue());
   }
-}
 
-function formatRegExp(pattern: string) {
-  const escapedPattern = pattern.replaceAll(/([/])/g, "\\$1");
-  return `/${escapedPattern}/`;
+  private createRegExpExpression(pattern: string) {
+    const { factory } = this;
+    return factory.createNewExpression(
+      factory.createIdentifier("RegExp"),
+      undefined,
+      [factory.createStringLiteral(pattern)],
+    );
+  }
 }

@@ -77,6 +77,8 @@ export class DocumentContext {
     antecedentUrl: URL | null,
     defaultSchemaId: string,
   ) {
+    retrievalUrl = new URL("", retrievalUrl);
+
     const retrievalId = retrievalUrl.toString();
     if (this.retrieved.has(retrievalId)) {
       return;
@@ -100,6 +102,8 @@ export class DocumentContext {
     documentNode: unknown,
     defaultSchemaId: string,
   ) {
+    retrievalUrl = new URL("", retrievalUrl);
+
     const retrievalId = retrievalUrl.toString();
     this.retrieved.add(retrievalId);
 

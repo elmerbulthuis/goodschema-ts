@@ -43,11 +43,11 @@
     "@jns42/jns42-schema-draft-04": "^0.2.3",
     "@jns42/jns42-schema-draft-2020-12": "^0.2.2",
     "@jns42/jns42-schema-intermediate-b": "^0.3.4",
-    "@types/node": "^20.8.6",
-    "@types/yargs": "^17.0.28",
+    "@types/node": "^20.8.7",
+    "@types/yargs": "^17.0.29",
     "camelcase": "^8.0.0",
     "tslib": "^2.6.2",
-    "type-fest": "^4.4.0",
+    "type-fest": "^4.5.0",
     "typescript": "^5.2.2",
     "yargs": "^17.7.2"
   }

@@ -82,190 +82,6 @@ export class Document extends SchemaDocumentBase<Node> {
 
   //#endregion
 
-  //#region intermediate sections
-
-  protected getIntermediateMetadataSection(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.MetadataSection {
-    const title = this.selectNodeTitle(node) ?? "";
-    const description = this.selectNodeDescription(node) ?? "";
-    const deprecated = this.selectNodeDeprecated(node) ?? false;
-    const examples = this.selectNodeExamples(node) ?? [];
-
-    return {
-      deprecated,
-      title,
-      description,
-      examples,
-    };
-  }
-  protected getIntermediateTypesSection(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.TypesSection {
-    if (node === true) {
-      return ["any"];
-    }
-
-    if (node === false) {
-      return ["never"];
-    }
-
-    const types = this.selectNodeTypes(node);
-    if (types != null) {
-      return types
-        .filter((type) => type != null)
-        .map((type) => type!)
-        .map((type) => this.mapType(type));
-    }
-
-    return this.guessTypes(node);
-  }
-
-  //#endregion
-
-  //#region intermediate assertions
-
-  protected getIntermediateBooleanAssertion(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.BooleanAssertion | undefined {
-    const enumValues = this.selectNodeEnum(node);
-    const constValue = this.selectNodeConst(node);
-
-    let options: Array<boolean> | undefined;
-
-    if (constValue != null && typeof constValue === "boolean") {
-      options = [constValue];
-    } else if (enumValues != null) {
-      options = [...enumValues].filter((value) => typeof value === "boolean");
-    }
-
-    return {
-      options,
-    };
-  }
-  protected getIntermediateIntegerAssertion(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.IntegerAssertion | undefined {
-    const enumValues = this.selectNodeEnum(node);
-    const constValue = this.selectNodeConst(node);
-
-    let options: Array<number> | undefined;
-
-    if (constValue != null && typeof constValue === "number") {
-      options = [constValue];
-    } else if (enumValues != null) {
-      options = [...enumValues].filter((value) => typeof value === "number");
-    }
-
-    const minimumInclusive = this.selectValidationMinimumInclusive(node);
-    const minimumExclusive = this.selectValidationMinimumExclusive(node);
-    const maximumInclusive = this.selectValidationMaximumInclusive(node);
-    const maximumExclusive = this.selectValidationMaximumExclusive(node);
-    const multipleOf = this.selectValidationMultipleOf(node);
-
-    return {
-      options,
-      minimumInclusive,
-      minimumExclusive,
-      maximumInclusive,
-      maximumExclusive,
-      multipleOf,
-    };
-  }
-  protected getIntermediateNumberAssertion(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.NumberAssertion | undefined {
-    const enumValues = this.selectNodeEnum(node);
-    const constValue = this.selectNodeConst(node);
-
-    let options: Array<number> | undefined;
-
-    if (constValue != null && typeof constValue === "number") {
-      options = [constValue];
-    } else if (enumValues != null) {
-      options = [...enumValues].filter((value) => typeof value === "number");
-    }
-
-    const minimumInclusive = this.selectValidationMinimumInclusive(node);
-    const minimumExclusive = this.selectValidationMinimumExclusive(node);
-    const maximumInclusive = this.selectValidationMaximumInclusive(node);
-    const maximumExclusive = this.selectValidationMaximumExclusive(node);
-    const multipleOf = this.selectValidationMultipleOf(node);
-
-    return {
-      options,
-      minimumInclusive,
-      minimumExclusive,
-      maximumInclusive,
-      maximumExclusive,
-      multipleOf,
-    };
-  }
-  protected getIntermediateStringAssertion(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.StringAssertion | undefined {
-    const enumValues = this.selectNodeEnum(node);
-    const constValue = this.selectNodeConst(node);
-
-    let options: Array<string> | undefined;
-
-    if (constValue != null && typeof constValue === "string") {
-      options = [constValue];
-    } else if (enumValues != null) {
-      options = [...enumValues].filter((value) => typeof value === "string");
-    }
-
-    const minimumLength = this.selectValidationMinimumLength(node);
-    const maximumLength = this.selectValidationMaximumLength(node);
-    const valuePattern = this.selectValidationValuePattern(node);
-    const valueFormat = this.selectValidationValueFormat(node);
-
-    return {
-      options,
-      minimumLength,
-      maximumLength,
-      valuePattern,
-      valueFormat,
-    };
-  }
-  protected getIntermediateArrayAssertion(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.ArrayAssertion | undefined {
-    const minimumItems = this.selectValidationMinimumItems(node);
-    const maximumItems = this.selectValidationMaximumItems(node);
-    const uniqueItems = this.selectValidationUniqueItems(node) ?? false;
-
-    return {
-      maximumItems,
-      minimumItems,
-      uniqueItems,
-    };
-  }
-  protected getIntermediateMapAssertion(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.MapAssertion | undefined {
-    const minimumProperties = this.selectValidationMinimumProperties(node);
-    const maximumProperties = this.selectValidationMaximumProperties(node);
-
-    const required = this.selectValidationRequired(node) ?? [];
-
-    return {
-      minimumProperties,
-      maximumProperties,
-      required,
-    };
-  }
-
-  //#endregion
-
   //#region intermediate applicators
 
   protected getIntermediateReference(
@@ -286,136 +102,6 @@ export class Document extends SchemaDocumentBase<Node> {
       const resolvedNodeId = resolvedNodeUrl.toString();
       return resolvedNodeId;
     }
-  }
-  protected getIntermediateAllOf(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.AllOf | undefined {
-    return this.mapEntriesToManyNodeIds(nodePointer, node, [
-      ...this.selectSubNodeAllOfEntries(nodePointer, node),
-    ]);
-  }
-  protected getIntermediateAnyOf(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.AnyOf | undefined {
-    return this.mapEntriesToManyNodeIds(nodePointer, node, [
-      ...this.selectSubNodeAnyOfEntries(nodePointer, node),
-    ]);
-  }
-  protected getIntermediateOneOf(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.OneOf | undefined {
-    return this.mapEntriesToManyNodeIds(nodePointer, node, [
-      ...this.selectSubNodeOneOfEntries(nodePointer, node),
-    ]);
-  }
-
-  protected getIntermediateNot(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.Not | undefined {
-    return this.mapEntriesToSingleNodeId(nodePointer, node, [
-      ...this.selectSubNodeNotEntries(nodePointer, node),
-    ]);
-  }
-
-  protected getIntermediateIf(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.If | undefined {
-    return this.mapEntriesToSingleNodeId(nodePointer, node, [
-      ...this.selectSubNodeIfEntries(nodePointer, node),
-    ]);
-  }
-
-  protected getIntermediateThen(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.Then | undefined {
-    return this.mapEntriesToSingleNodeId(nodePointer, node, [
-      ...this.selectSubNodeThenEntries(nodePointer, node),
-    ]);
-  }
-
-  protected getIntermediateElse(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.Else | undefined {
-    return this.mapEntriesToSingleNodeId(nodePointer, node, [
-      ...this.selectSubNodeElseEntries(nodePointer, node),
-    ]);
-  }
-
-  protected getIntermediateDependentSchemas(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.DependentSchemas | undefined {
-    return this.mapPointerEntriesRecord(nodePointer, node, [
-      ...this.selectNodeDependentSchemasPointerEntries(nodePointer, node),
-    ]);
-  }
-
-  protected getIntermediateTupleItems(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.TupleItems | undefined {
-    return this.mapEntriesToManyNodeIds(nodePointer, node, [
-      ...this.selectSubNodePrefixItemsEntries(nodePointer, node),
-    ]);
-  }
-
-  protected getIntermediateArrayItems(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.ArrayItems | undefined {
-    return this.mapEntriesToSingleNodeId(nodePointer, node, [
-      ...this.selectSubNodeItemsEntries(nodePointer, node),
-    ]);
-  }
-
-  protected getIntermediateContains(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.Contains | undefined {
-    return this.mapEntriesToSingleNodeId(nodePointer, node, [
-      ...this.selectSubNodeContainsEntries(nodePointer, node),
-    ]);
-  }
-
-  protected getIntermediateObjectProperties(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.ObjectProperties | undefined {
-    return this.mapPointerEntriesRecord(nodePointer, node, [
-      ...this.selectNodePropertiesPointerEntries(nodePointer, node),
-    ]);
-  }
-
-  protected getIntermediateMapProperties(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.MapProperties | undefined {
-    return this.mapEntriesToSingleNodeId(nodePointer, node, [
-      ...this.selectSubNodeAdditionalPropertiesEntries(nodePointer, node),
-    ]);
-  }
-  protected getIntermediatePatternProperties(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.PatternProperties | undefined {
-    return this.mapPointerEntriesRecord(nodePointer, node, [
-      ...this.selectNodePatternPropertyPointerEntries(nodePointer, node),
-    ]);
-  }
-  protected getIntermediatePropertyNames(
-    nodePointer: string,
-    node: Node,
-  ): schemaIntermediateB.PropertyNames | undefined {
-    return this.mapEntriesToSingleNodeId(nodePointer, node, [
-      ...this.selectSubNodePropertyNamesEntries(nodePointer, node),
-    ]);
   }
 
   //#endregion
@@ -467,194 +153,17 @@ export class Document extends SchemaDocumentBase<Node> {
 
   //#endregion
 
-  //#region helpers
-
-  private mapPointerEntriesRecord(
-    nodePointer: string,
-    node: Node,
-    entries: Array<readonly [string, string]>,
-  ): Record<string, string> | undefined {
-    if (entries.length > 0) {
-      const nodeIds = Object.fromEntries(
-        entries.map(([key, nodePointer]) => {
-          const nodeUrl = this.pointerToNodeUrl(nodePointer);
-          const nodeId = String(nodeUrl);
-          return [key, nodeId];
-        }),
-      );
-      return nodeIds;
-    }
-  }
-
-  private mapEntriesToManyNodeIds(
-    nodePointer: string,
-    node: Node,
-    entries: Array<readonly [string, Node]>,
-  ): Array<string> | undefined {
-    if (entries.length > 0) {
-      const nodeIds = entries.map(([typeNodePointer]) => {
-        const nodeUrl = this.pointerToNodeUrl(typeNodePointer);
-        const nodeId = String(nodeUrl);
-        return nodeId;
-      });
-      return nodeIds;
-    }
-  }
-
-  private mapEntriesToSingleNodeId(
-    nodePointer: string,
-    node: Node,
-    entries: Array<readonly [string, Node]>,
-  ): string | undefined {
-    for (const [nodePointer] of entries) {
-      const nodeUrl = this.pointerToNodeUrl(nodePointer);
-      const nodeId = String(nodeUrl);
-      return nodeId;
-    }
-  }
-
-  private mapType(type: string) {
-    switch (type) {
-      case "never":
-        return "never";
-      case "any":
-        return "any";
-      case "null":
-        return "null";
-      case "boolean":
-        return "boolean";
-      case "integer":
-        return "integer";
-      case "number":
-        return "number";
-      case "string":
-        return "string";
-      case "array":
-        return "array";
-      case "object":
-        return "map";
-      default:
-        throw new Error("unexpected type");
-    }
-  }
-
-  private guessTypes(node: Node) {
-    const nodeConst = this.selectNodeConst(node);
-    const nodeEnums = this.selectNodeEnum(node);
-    const types = new Set<schemaIntermediateB.TypesSectionItems>();
-
-    if (nodeConst != null) {
-      switch (typeof nodeConst) {
-        case "number":
-          types.add("number");
-          break;
-        case "boolean":
-          types.add("boolean");
-          break;
-        case "string":
-          types.add("string");
-          break;
-        case "bigint":
-          types.add("integer");
-          break;
-
-        default:
-          throw new Error("unexpected const type");
-      }
-    }
-
-    if (nodeEnums != null) {
-      for (const nodeEnum in nodeEnums) {
-        switch (typeof nodeEnum) {
-          case "number":
-            types.add("number");
-            break;
-          case "boolean":
-            types.add("boolean");
-            break;
-          case "string":
-            types.add("string");
-            break;
-          case "bigint":
-            types.add("integer");
-            break;
-
-          default:
-            throw new Error("unexpected enum type");
-        }
-      }
-    }
-
-    if (
-      this.selectValidationMinimumInclusive(node) != null ||
-      this.selectValidationMinimumExclusive(node) != null ||
-      this.selectValidationMaximumInclusive(node) != null ||
-      this.selectValidationMaximumExclusive(node) != null ||
-      this.selectValidationMultipleOf(node) != null
-    ) {
-      types.add("number");
-    }
-
-    if (
-      this.selectValidationMinimumLength(node) != null ||
-      this.selectValidationMaximumLength(node) != null ||
-      this.selectValidationValuePattern(node) != null ||
-      this.selectValidationValueFormat(node) != null
-    ) {
-      types.add("string");
-    }
-
-    if (
-      this.selectValidationMinimumItems(node) != null ||
-      this.selectValidationMaximumItems(node) != null ||
-      this.selectValidationUniqueItems(node) != null
-    ) {
-      types.add("array");
-    }
-
-    if (
-      this.selectValidationMinimumItems(node) != null ||
-      this.selectValidationMaximumItems(node) != null ||
-      this.selectValidationUniqueItems(node) != null
-    ) {
-      types.add("array");
-    }
-
-    if (
-      this.selectValidationMinimumProperties(node) != null ||
-      this.selectValidationMaximumProperties(node) != null ||
-      this.selectValidationRequired(node) != null
-    ) {
-      types.add("map");
-    }
-
-    if (
-      [
-        ...this.selectSubNodePrefixItemsEntries("", node),
-        ...this.selectSubNodeItemsEntries("", node),
-        ...this.selectSubNodeContainsEntries("", node),
-      ].length > 0
-    ) {
-      types.add("array");
-    }
-
-    if (
-      [
-        ...this.selectSubNodePropertyEntries("", node),
-        ...this.selectSubNodeAdditionalPropertiesEntries("", node),
-        ...this.selectSubNodePatternPropertiesEntries("", node),
-        ...this.selectSubNodePropertyNamesEntries("", node),
-      ].length > 0
-    ) {
-      types.add("map");
-    }
-
-    return [...types];
-  }
-
-  //#endregion
-
   //#region core selectors
+
+  protected selectNodeTypes(node: Node) {
+    if (typeof node === "object" && node.type != null) {
+      if (Array.isArray(node.type)) {
+        return node.type as string[];
+      } else {
+        return [node.type] as string[];
+      }
+    }
+  }
 
   protected selectNodeSchema(node: Node) {
     if (typeof node === "object") {
@@ -766,7 +275,7 @@ export class Document extends SchemaDocumentBase<Node> {
 
   //#region schema selectors
 
-  protected *selectSubNodeDefEntries(nodePointer: string, node: Node) {
+  protected *selectSubNodeDefinitionsEntries(nodePointer: string, node: Node) {
     if (typeof node === "object" && node.$defs != null) {
       for (const [key, subNode] of Object.entries(node.$defs)) {
         const subNodePointer = [nodePointer, "$defs", key].join("/");
@@ -904,59 +413,6 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodes(
-    nodePointer: string,
-    node: Node,
-  ): Iterable<readonly [string, Node]> {
-    yield* this.selectSubNodeDefEntries(nodePointer, node);
-    yield* this.selectSubNodePropertyEntries(nodePointer, node);
-    yield* this.selectSubNodeAdditionalPropertiesEntries(nodePointer, node);
-    yield* this.selectSubNodePatternPropertiesEntries(nodePointer, node);
-    yield* this.selectSubNodePropertyNamesEntries(nodePointer, node);
-    yield* this.selectSubNodePrefixItemsEntries(nodePointer, node);
-    yield* this.selectSubNodeItemsEntries(nodePointer, node);
-    yield* this.selectSubNodeContainsEntries(nodePointer, node);
-    yield* this.selectSubNodeAllOfEntries(nodePointer, node);
-    yield* this.selectSubNodeAnyOfEntries(nodePointer, node);
-    yield* this.selectSubNodeOneOfEntries(nodePointer, node);
-    yield* this.selectSubNodeNotEntries(nodePointer, node);
-    yield* this.selectSubNodeIfEntries(nodePointer, node);
-    yield* this.selectSubNodeThenEntries(nodePointer, node);
-    yield* this.selectSubNodeElseEntries(nodePointer, node);
-  }
-
-  //#endregion
-
-  //#region type selectors
-
-  protected selectNodeTypes(node: Node) {
-    if (typeof node === "object" && node.type != null) {
-      if (Array.isArray(node.type)) {
-        return node.type;
-      } else {
-        return [node.type];
-      }
-    }
-  }
-
-  protected *selectNodeRequired(node: Node) {
-    if (typeof node === "object" && node.required != null) {
-      yield* node.required;
-    }
-  }
-
-  protected selectNodeEnum(node: Node) {
-    if (typeof node === "object") {
-      return node.enum;
-    }
-  }
-
-  protected selectNodeConst(node: Node) {
-    if (typeof node === "object") {
-      return node.const;
-    }
-  }
-
   //#endregion
 
   //#region validation selectors
@@ -1051,15 +507,15 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected selectValidationConst(node: Node) {
-    if (typeof node === "object") {
-      return node.const;
-    }
-  }
-
   protected selectValidationEnum(node: Node) {
     if (typeof node === "object") {
       return node.enum;
+    }
+  }
+
+  protected selectValidationConst(node: Node) {
+    if (typeof node === "object") {
+      return node.const;
     }
   }
 

@@ -1223,22 +1223,6 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
       );
     }
 
-    if (node.applicators.propertyNames != null) {
-      const typeName = this.getTypeName(node.applicators.propertyNames);
-
-      yield f.createIfStatement(
-        f.createPrefixUnaryExpression(
-          ts.SyntaxKind.ExclamationToken,
-          f.createCallExpression(
-            f.createIdentifier(`is${typeName}`),
-            undefined,
-            [f.createIdentifier("propertyName")],
-          ),
-        ),
-        f.createBlock([f.createReturnStatement(f.createFalse())], true),
-      );
-    }
-
     yield f.createVariableStatement(
       undefined,
       f.createVariableDeclarationList(
@@ -1263,19 +1247,12 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
       ),
     );
 
-    if (node.applicators.mapProperties != null) {
-      const typeName = this.getTypeName(node.applicators.mapProperties);
-
-      yield f.createIfStatement(
-        f.createPrefixUnaryExpression(
-          ts.SyntaxKind.ExclamationToken,
-          f.createCallExpression(
-            f.createIdentifier(`is${typeName}`),
-            undefined,
-            [f.createIdentifier("propertyValue")],
-          ),
-        ),
-        f.createBlock([f.createReturnStatement(f.createFalse())], true),
+    if (node.applicators.objectProperties != null) {
+      yield f.createSwitchStatement(
+        f.createIdentifier("propertyName"),
+        f.createCaseBlock([
+          ...this.generateMapTypeItemCaseClausesValidationStatements(nodeId),
+        ]),
       );
     }
 
@@ -1307,20 +1284,43 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
                 ),
                 f.createBlock([f.createReturnStatement(f.createFalse())], true),
               ),
+              f.createContinueStatement(),
             ],
             true,
           ),
-          undefined,
         );
       }
     }
 
-    if (node.applicators.objectProperties != null) {
-      yield f.createSwitchStatement(
-        f.createIdentifier("propertyName"),
-        f.createCaseBlock([
-          ...this.generateMapTypeItemCaseClausesValidationStatements(nodeId),
-        ]),
+    if (node.applicators.propertyNames != null) {
+      const typeName = this.getTypeName(node.applicators.propertyNames);
+
+      yield f.createIfStatement(
+        f.createPrefixUnaryExpression(
+          ts.SyntaxKind.ExclamationToken,
+          f.createCallExpression(
+            f.createIdentifier(`is${typeName}`),
+            undefined,
+            [f.createIdentifier("propertyName")],
+          ),
+        ),
+        f.createBlock([f.createReturnStatement(f.createFalse())], true),
+      );
+    }
+
+    if (node.applicators.mapProperties != null) {
+      const typeName = this.getTypeName(node.applicators.mapProperties);
+
+      yield f.createIfStatement(
+        f.createPrefixUnaryExpression(
+          ts.SyntaxKind.ExclamationToken,
+          f.createCallExpression(
+            f.createIdentifier(`is${typeName}`),
+            undefined,
+            [f.createIdentifier("propertyValue")],
+          ),
+        ),
+        f.createBlock([f.createReturnStatement(f.createFalse())], true),
       );
     }
   }
@@ -1351,7 +1351,7 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
           ),
           f.createBlock([f.createReturnStatement(f.createFalse())], true),
         ),
-        f.createBreakStatement(),
+        f.createContinueStatement(),
       ]);
     }
   }

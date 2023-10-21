@@ -938,27 +938,6 @@ export abstract class SchemaDocumentBase<
       types.add("map");
     }
 
-    if (
-      [
-        ...this.selectSubNodePrefixItemsEntries("", node),
-        ...this.selectSubNodeItemsEntries("", node),
-        ...this.selectSubNodeContainsEntries("", node),
-      ].length > 0
-    ) {
-      types.add("array");
-    }
-
-    if (
-      [
-        ...this.selectSubNodePropertyEntries("", node),
-        ...this.selectSubNodeAdditionalPropertiesEntries("", node),
-        ...this.selectSubNodePatternPropertiesEntries("", node),
-        ...this.selectSubNodePropertyNamesEntries("", node),
-      ].length > 0
-    ) {
-      types.add("map");
-    }
-
     return [...types];
   }
 

@@ -78,7 +78,7 @@ export class Document extends SchemaDocumentBase<Node> {
     nodePointer: string,
     node: Node,
   ): schemaIntermediateB.Reference | undefined {
-    const nodeRef = this.selectNodeRef(node);
+    const nodeRef = this.selectNodeReference(node);
     if (nodeRef != null) {
       const resolvedNodeUrl = this.resolveReferenceNodeUrl(nodeRef);
       const resolvedNodeId = resolvedNodeUrl.toString();
@@ -136,7 +136,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected selectNodeRef(node: Node) {
+  protected selectNodeReference(node: Node) {
     if (
       typeof node === "object" &&
       "$ref" in node &&

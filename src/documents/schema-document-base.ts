@@ -87,7 +87,7 @@ export abstract class SchemaDocumentBase<
     retrievalUrl: URL,
   ): Iterable<ReferencedDocument> {
     for (const [, node] of this.nodes) {
-      const nodeRef = this.selectNodeRef(node);
+      const nodeRef = this.selectNodeReference(node);
       if (nodeRef == null) {
         continue;
       }
@@ -648,7 +648,7 @@ export abstract class SchemaDocumentBase<
 
   protected abstract selectNodeSchema(node: Node): string | undefined;
   protected abstract selectNodeId(node: Node): string | undefined;
-  protected abstract selectNodeRef(node: Node): string | undefined;
+  protected abstract selectNodeReference(node: Node): string | undefined;
 
   protected abstract selectNodeTitle(node: Node): string | undefined;
   protected abstract selectNodeDescription(node: Node): string | undefined;

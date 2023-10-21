@@ -5,6 +5,10 @@ export class Arena<I> {
     return this.items.size;
   }
 
+  public get [Symbol.iterator]() {
+    return this.items[Symbol.iterator];
+  }
+
   public getItem(key: symbol) {
     const item = this.items.get(key);
     if (item == null) {

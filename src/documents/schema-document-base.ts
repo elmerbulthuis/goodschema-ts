@@ -30,6 +30,8 @@ export abstract class SchemaDocumentBase<
    */
   protected readonly nodes: Map<string, Node>;
 
+  private readonly contexts = new Map<string, string>();
+
   /**
    * Constructor for creating new documents
    * @param givenUrl url that is derived from the referencing document
@@ -58,10 +60,16 @@ export abstract class SchemaDocumentBase<
    * get all embedded document nodes
    */
   public *getEmbeddedDocuments(retrievalUrl: URL): Iterable<EmbeddedDocument> {
-    const queue = new Array<readonly [string, Node]>();
-    queue.push(
+    const subNodes = [
       ...this.selectSubNodes(this.documentNodePointer, this.documentNode),
-    );
+    ];
+    const compoundNodes = [
+      ...this.selectCompoundNodes(this.documentNodePointer, this.documentNode),
+    ];
+
+    const queue = new Array<readonly [string, Node]>();
+    queue.push(...subNodes);
+    queue.push(...compoundNodes);
 
     let pair: readonly [string, Node] | undefined;
     while ((pair = queue.shift()) != null) {
@@ -69,7 +77,11 @@ export abstract class SchemaDocumentBase<
 
       const nodeId = this.selectNodeId(node);
       if (nodeId == null || !this.isNodeEmbeddedSchema(node)) {
-        queue.push(...this.selectSubNodes(nodePointer, node));
+        const subNodes = [...this.selectSubNodes(nodePointer, node)];
+        const compoundNodes = [...this.selectCompoundNodes(nodePointer, node)];
+
+        queue.push(...subNodes);
+        queue.push(...compoundNodes);
 
         continue;
       }
@@ -105,10 +117,24 @@ export abstract class SchemaDocumentBase<
   }
 
   protected *getNodePairs(): Iterable<readonly [string, Node]> {
-    const queue = new Array<readonly [string, Node]>();
-    queue.push(
+    const subNodes = [
       ...this.selectSubNodes(this.documentNodePointer, this.documentNode),
-    );
+    ];
+    const compoundNodes = [
+      ...this.selectCompoundNodes(this.documentNodePointer, this.documentNode),
+    ];
+
+    const contextNodeUrl = this.documentNodeUrl;
+    const contextNodeId = String(contextNodeUrl);
+    for (const [compoundNodePointer] of compoundNodes) {
+      const compoundNodeUrl = this.pointerToNodeUrl(compoundNodePointer);
+      const compoundNodeId = String(compoundNodeUrl);
+      this.contexts.set(compoundNodeId, contextNodeId);
+    }
+
+    const queue = new Array<readonly [string, Node]>();
+    queue.push(...subNodes);
+    queue.push(...compoundNodes);
 
     yield [this.documentNodePointer, this.documentNode];
 
@@ -118,7 +144,19 @@ export abstract class SchemaDocumentBase<
 
       const nodeId = this.selectNodeId(node);
       if (nodeId == null || nodeId.startsWith("#")) {
-        queue.push(...this.selectSubNodes(nodePointer, node));
+        const subNodes = [...this.selectSubNodes(nodePointer, node)];
+        const compoundNodes = [...this.selectCompoundNodes(nodePointer, node)];
+
+        const contextNodeUrl = nodeId ?? this.pointerToNodeUrl(nodePointer);
+        const contextNodeId = String(contextNodeUrl);
+        for (const [compoundNodePointer] of compoundNodes) {
+          const compoundNodeUrl = this.pointerToNodeUrl(compoundNodePointer);
+          const compoundNodeId = String(compoundNodeUrl);
+          this.contexts.set(compoundNodeId, contextNodeId);
+        }
+
+        queue.push(...subNodes);
+        queue.push(...compoundNodes);
 
         yield pair;
       }
@@ -191,6 +229,7 @@ export abstract class SchemaDocumentBase<
     for (const [nodePointer, node] of this.nodes) {
       const nodeUrl = this.pointerToNodeUrl(nodePointer);
       const nodeId = nodeUrl.toString();
+      const context = this.contexts.get(nodeId);
 
       const metadata = this.getIntermediateMetadataSection(nodePointer, node);
       const types = this.getIntermediateTypesSection(nodePointer, node);
@@ -206,6 +245,7 @@ export abstract class SchemaDocumentBase<
       yield [
         nodeId,
         {
+          context,
           metadata,
           types,
           assertions,
@@ -637,6 +677,12 @@ export abstract class SchemaDocumentBase<
     yield* this.selectSubNodePrefixItemsEntries(nodePointer, node);
     yield* this.selectSubNodeItemsEntries(nodePointer, node);
     yield* this.selectSubNodeContainsEntries(nodePointer, node);
+  }
+
+  protected *selectCompoundNodes(
+    nodePointer: string,
+    node: Node,
+  ): Iterable<readonly [string, Node]> {
     yield* this.selectSubNodeAllOfEntries(nodePointer, node);
     yield* this.selectSubNodeAnyOfEntries(nodePointer, node);
     yield* this.selectSubNodeOneOfEntries(nodePointer, node);

@@ -275,17 +275,16 @@ export class ValidatorsTsCodeGenerator extends CodeGeneratorBase {
           ts.SyntaxKind.ExclamationToken,
           f.createParenthesizedExpression(
             this.joinExpressions(
-              node.types.map(
-                (type) =>
-                  f.createCallExpression(
-                    f.createIdentifier(
-                      `_is${camelcase(type, {
-                        pascalCase: true,
-                      })}${typeName}`,
-                    ),
-                    undefined,
-                    [f.createIdentifier("value")],
-                  ) as ts.Expression,
+              node.types.map((type) =>
+                f.createCallExpression(
+                  f.createIdentifier(
+                    `_is${camelcase(type, {
+                      pascalCase: true,
+                    })}${typeName}`,
+                  ),
+                  undefined,
+                  [f.createIdentifier("value")],
+                ),
               ),
               f.createToken(ts.SyntaxKind.BarBarToken),
             ),

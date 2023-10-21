@@ -136,7 +136,7 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
   protected *generateCompoundDefinitionElements(
     nodeId: string,
   ): Iterable<ts.TypeNode> {
-    let node = this.nodes[nodeId];
+    const node = this.nodes[nodeId];
 
     if (node.applicators.reference != null) {
       yield this.generateReferenceCompoundDefinition(
@@ -174,8 +174,8 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
     return this.factory.createLiteralTypeNode(this.factory.createNull());
   }
   protected generateBooleanTypeDefinition(nodeId: string): ts.TypeNode {
-    let node = this.nodes[nodeId];
-    let options = node.assertions.boolean?.options;
+    const node = this.nodes[nodeId];
+    const options = node.assertions.boolean?.options;
 
     if (options == null) {
       return this.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword);
@@ -190,8 +190,8 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
     );
   }
   protected generateIntegerTypeDefinition(nodeId: string): ts.TypeNode {
-    let node = this.nodes[nodeId];
-    let options = node.assertions.integer?.options;
+    const node = this.nodes[nodeId];
+    const options = node.assertions.integer?.options;
 
     if (options == null) {
       return this.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword);
@@ -206,8 +206,8 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
     );
   }
   protected generateNumberTypeDefinition(nodeId: string): ts.TypeNode {
-    let node = this.nodes[nodeId];
-    let options = node.assertions.number?.options;
+    const node = this.nodes[nodeId];
+    const options = node.assertions.number?.options;
 
     if (options == null) {
       return this.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword);
@@ -222,8 +222,8 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
     );
   }
   protected generateStringTypeDefinition(nodeId: string): ts.TypeNode {
-    let node = this.nodes[nodeId];
-    let options = node.assertions.string?.options;
+    const node = this.nodes[nodeId];
+    const options = node.assertions.string?.options;
 
     if (options == null) {
       return this.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword);
@@ -238,9 +238,9 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
     );
   }
   protected generateArrayTypeDefinition(nodeId: string): ts.TypeNode {
-    let node = this.nodes[nodeId];
-    let tupleItems = node.applicators.tupleItems;
-    let arrayItems = node.applicators.arrayItems;
+    const node = this.nodes[nodeId];
+    const tupleItems = node.applicators.tupleItems;
+    const arrayItems = node.applicators.arrayItems;
 
     if (arrayItems != null) {
       const elements = [...(tupleItems || []), arrayItems]
@@ -268,75 +268,93 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
     }
   }
   protected generateMapTypeDefinition(nodeId: string): ts.TypeNode {
-    let node = this.nodes[nodeId];
-    let objectProperties = node.applicators.objectProperties;
-    let patternProperties = node.applicators.patternProperties;
-    let mapProperties = node.applicators.mapProperties;
-    let propertyNames = node.applicators.propertyNames;
-    let required = new Set(node.assertions.map?.required);
+    const { factory: f } = this;
+    const node = this.nodes[nodeId];
+    const objectProperties = node.applicators.objectProperties;
+    const patternProperties = node.applicators.patternProperties;
+    const mapProperties = node.applicators.mapProperties;
+    const propertyNames = node.applicators.propertyNames;
+    const required = new Set(node.assertions.map?.required);
 
-    const propertyNameElement =
+    const members = Array<ts.TypeElement>();
+    const indexTypeUnionElements = new Array<ts.TypeNode>();
+
+    let hasIndexSignature = false;
+    let indexMaybeUndefined = false;
+
+    const nameTypeElement =
       propertyNames == null
-        ? this.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
+        ? f.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
         : this.generateTypeReference(propertyNames);
 
-    const unionElements = new Array<ts.TypeNode>();
-
     if (mapProperties != null) {
-      const typeElement = this.generateTypeReference(mapProperties);
+      hasIndexSignature = true;
 
-      unionElements.push(
-        this.factory.createTypeReferenceNode(
-          this.factory.createIdentifier("Record"),
-          [propertyNameElement, typeElement],
-        ),
-      );
+      const typeElement = this.generateTypeReference(mapProperties);
+      indexTypeUnionElements.push(typeElement);
     }
 
     if (patternProperties != null) {
+      hasIndexSignature = true;
+
       for (const patternProperty of Object.values(patternProperties)) {
         const typeElement = this.generateTypeReference(patternProperty);
-
-        unionElements.push(
-          this.factory.createTypeReferenceNode(
-            this.factory.createIdentifier("Record"),
-            [propertyNameElement, typeElement],
-          ),
-        );
+        indexTypeUnionElements.push(typeElement);
       }
     }
 
     if (objectProperties != null) {
-      const members = Object.entries(objectProperties).map(([name, nodeId]) =>
-        this.factory.createPropertySignature(
+      for (const name in objectProperties) {
+        const nodeId = objectProperties[name];
+        const typeElement = this.generateTypeReference(nodeId);
+        const memberRequired = required.has(name);
+        members.push(
+          f.createPropertySignature(
+            undefined,
+            f.createIdentifier(name),
+            memberRequired
+              ? undefined
+              : f.createToken(ts.SyntaxKind.QuestionToken),
+            typeElement,
+          ),
+        );
+
+        if (hasIndexSignature) {
+          indexTypeUnionElements.push(typeElement);
+        }
+
+        if (!memberRequired) {
+          indexMaybeUndefined = true;
+        }
+      }
+    }
+
+    if (indexMaybeUndefined) {
+      indexTypeUnionElements.push(
+        f.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
+      );
+    }
+
+    if (hasIndexSignature) {
+      members.push(
+        f.createIndexSignature(
           undefined,
-          this.factory.createIdentifier(name),
-          required.has(name)
-            ? undefined
-            : this.factory.createToken(ts.SyntaxKind.QuestionToken),
-          this.generateTypeReference(nodeId),
+          [
+            f.createParameterDeclaration(
+              undefined,
+              undefined,
+              f.createIdentifier("key"),
+              undefined,
+              nameTypeElement,
+              undefined,
+            ),
+          ],
+          f.createUnionTypeNode(indexTypeUnionElements),
         ),
       );
-      unionElements.push(this.factory.createTypeLiteralNode(members));
     }
 
-    if (unionElements.length === 0) {
-      const element = this.factory.createKeywordTypeNode(
-        ts.SyntaxKind.UnknownKeyword,
-      );
-      return this.factory.createTypeReferenceNode(
-        this.factory.createIdentifier("Record"),
-        [propertyNameElement, element],
-      );
-    }
-
-    if (unionElements.length == 1) {
-      return unionElements[0];
-    }
-
-    {
-      return this.factory.createUnionTypeNode(unionElements);
-    }
+    return f.createTypeLiteralNode(members);
   }
 
   protected generateOneOfCompoundDefinition(oneOf: string[]) {
@@ -372,7 +390,7 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
   ) {
     const ifElement = this.generateTypeReference($if);
 
-    let elements = new Array<ts.TypeNode>();
+    const elements = new Array<ts.TypeNode>();
     if (then != null) {
       elements.push(
         this.factory.createIntersectionTypeNode([

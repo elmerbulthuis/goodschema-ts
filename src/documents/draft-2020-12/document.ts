@@ -284,7 +284,10 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodePropertyEntries(nodePointer: string, node: Node) {
+  protected *selectSubNodeObjectPropertyEntries(
+    nodePointer: string,
+    node: Node,
+  ) {
     if (typeof node === "object" && node.properties != null) {
       for (const [key, subNode] of Object.entries(node.properties)) {
         const subNodePointer = [nodePointer, "properties", key].join("/");
@@ -293,7 +296,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodeAdditionalPropertiesEntries(
+  protected *selectSubNodeMapPropertiesEntries(
     nodePointer: string,
     node: Node,
   ) {
@@ -329,7 +332,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodePrefixItemsEntries(nodePointer: string, node: Node) {
+  protected *selectSubNodeTupleItemsEntries(nodePointer: string, node: Node) {
     if (typeof node === "object" && node.prefixItems != null) {
       for (const [key, subNode] of Object.entries(node.prefixItems)) {
         const subNodePointer = [nodePointer, "prefixItems", key].join("/");
@@ -338,7 +341,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodeItemsEntries(nodePointer: string, node: Node) {
+  protected *selectSubNodeArrayItemsEntries(nodePointer: string, node: Node) {
     if (typeof node === "object" && node.items != null) {
       const subNode = node.items;
       const subNodePointer = [nodePointer, "items"].join("/");

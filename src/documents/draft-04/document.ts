@@ -219,7 +219,10 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodePropertyEntries(nodePointer: string, node: Node) {
+  protected *selectSubNodeObjectPropertyEntries(
+    nodePointer: string,
+    node: Node,
+  ) {
     if (typeof node === "object" && node.properties != null) {
       for (const [key, subNode] of Object.entries(node.properties)) {
         const subNodePointer = [nodePointer, "properties", key].join("/");
@@ -228,7 +231,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodeAdditionalPropertiesEntries(
+  protected *selectSubNodeMapPropertiesEntries(
     nodePointer: string,
     node: Node,
   ) {
@@ -239,7 +242,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodePrefixItemsEntries(
+  protected *selectSubNodeTupleItemsEntries(
     nodePointer: string,
     node: Node,
   ): Iterable<readonly [string, Node]> {
@@ -254,7 +257,7 @@ export class Document extends SchemaDocumentBase<Node> {
       }
     }
   }
-  protected *selectSubNodeItemsEntries(
+  protected *selectSubNodeArrayItemsEntries(
     nodePointer: string,
     node: Node,
   ): Iterable<readonly [string, Node]> {

@@ -560,7 +560,7 @@ export abstract class SchemaDocumentBase<
     node: Node,
   ): schemaIntermediateB.TupleItems | undefined {
     return this.mapEntriesToManyNodeIds(nodePointer, node, [
-      ...this.selectSubNodePrefixItemsEntries(nodePointer, node),
+      ...this.selectSubNodeTupleItemsEntries(nodePointer, node),
     ]);
   }
 
@@ -569,7 +569,7 @@ export abstract class SchemaDocumentBase<
     node: Node,
   ): schemaIntermediateB.ArrayItems | undefined {
     return this.mapEntriesToSingleNodeId(nodePointer, node, [
-      ...this.selectSubNodeItemsEntries(nodePointer, node),
+      ...this.selectSubNodeArrayItemsEntries(nodePointer, node),
     ]);
   }
 
@@ -596,7 +596,7 @@ export abstract class SchemaDocumentBase<
     node: Node,
   ): schemaIntermediateB.MapProperties | undefined {
     return this.mapEntriesToSingleNodeId(nodePointer, node, [
-      ...this.selectSubNodeAdditionalPropertiesEntries(nodePointer, node),
+      ...this.selectSubNodeMapPropertiesEntries(nodePointer, node),
     ]);
   }
   protected getIntermediatePatternProperties(
@@ -630,12 +630,12 @@ export abstract class SchemaDocumentBase<
     node: Node,
   ): Iterable<readonly [string, Node]> {
     yield* this.selectSubNodeDefinitionsEntries(nodePointer, node);
-    yield* this.selectSubNodePropertyEntries(nodePointer, node);
-    yield* this.selectSubNodeAdditionalPropertiesEntries(nodePointer, node);
+    yield* this.selectSubNodeObjectPropertyEntries(nodePointer, node);
+    yield* this.selectSubNodeMapPropertiesEntries(nodePointer, node);
     yield* this.selectSubNodePatternPropertiesEntries(nodePointer, node);
     yield* this.selectSubNodePropertyNamesEntries(nodePointer, node);
-    yield* this.selectSubNodePrefixItemsEntries(nodePointer, node);
-    yield* this.selectSubNodeItemsEntries(nodePointer, node);
+    yield* this.selectSubNodeTupleItemsEntries(nodePointer, node);
+    yield* this.selectSubNodeArrayItemsEntries(nodePointer, node);
     yield* this.selectSubNodeContainsEntries(nodePointer, node);
     yield* this.selectSubNodeAllOfEntries(nodePointer, node);
     yield* this.selectSubNodeAnyOfEntries(nodePointer, node);
@@ -718,11 +718,11 @@ export abstract class SchemaDocumentBase<
     nodePointer: string,
     node: Node,
   ): Iterable<readonly [string, Node]>;
-  protected abstract selectSubNodePropertyEntries(
+  protected abstract selectSubNodeObjectPropertyEntries(
     nodePointer: string,
     node: Node,
   ): Iterable<readonly [string, Node]>;
-  protected abstract selectSubNodeAdditionalPropertiesEntries(
+  protected abstract selectSubNodeMapPropertiesEntries(
     nodePointer: string,
     node: Node,
   ): Iterable<readonly [string, Node]>;
@@ -734,11 +734,11 @@ export abstract class SchemaDocumentBase<
     nodePointer: string,
     node: Node,
   ): Iterable<readonly [string, Node]>;
-  protected abstract selectSubNodePrefixItemsEntries(
+  protected abstract selectSubNodeTupleItemsEntries(
     nodePointer: string,
     node: Node,
   ): Iterable<readonly [string, Node]>;
-  protected abstract selectSubNodeItemsEntries(
+  protected abstract selectSubNodeArrayItemsEntries(
     nodePointer: string,
     node: Node,
   ): Iterable<readonly [string, Node]>;
@@ -925,7 +925,8 @@ export abstract class SchemaDocumentBase<
     if (
       this.selectValidationMinimumItems(node) != null ||
       this.selectValidationMaximumItems(node) != null ||
-      this.selectValidationUniqueItems(node) != null
+      this.selectValidationUniqueItems(node) != null ||
+      [...this.selectSubNodeTupleItemsEntries("", node)].length > 0
     ) {
       types.add("array");
     }
@@ -933,7 +934,8 @@ export abstract class SchemaDocumentBase<
     if (
       this.selectValidationMinimumProperties(node) != null ||
       this.selectValidationMaximumProperties(node) != null ||
-      this.selectValidationRequired(node) != null
+      this.selectValidationRequired(node) != null ||
+      [...this.selectSubNodeObjectPropertyEntries("", node)].length > 0
     ) {
       types.add("map");
     }

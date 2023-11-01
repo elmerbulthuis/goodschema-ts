@@ -41,11 +41,11 @@ export class DocumentContext {
     return {
       $schema:
         "https://schema.JsonSchema42.org/jns42-intermediate-b/schema.json",
-      nodes: Object.fromEntries(this.getIntermediateNodeEntries()),
+      schemas: Object.fromEntries(this.getIntermediateSchemaEntries()),
     };
   }
 
-  public *getIntermediateNodeEntries(): Iterable<
+  public *getIntermediateSchemaEntries(): Iterable<
     readonly [string, schemaIntermediateB.Node]
   > {
     for (const document of this.documents.values()) {

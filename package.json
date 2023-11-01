@@ -43,12 +43,12 @@
   "dependencies": {
     "@jns42/jns42-schema-draft-04": "^0.2.5",
     "@jns42/jns42-schema-draft-2020-12": "^0.2.4",
-    "@jns42/jns42-schema-intermediate-b": "^0.3.7",
-    "@types/node": "^20.8.7",
+    "@jns42/jns42-schema-intermediate-b": "^0.4.0",
+    "@types/node": "^20.8.10",
     "@types/yargs": "^17.0.29",
     "camelcase": "^8.0.0",
     "tslib": "^2.6.2",
-    "type-fest": "^4.5.0",
+    "type-fest": "^4.6.0",
     "typescript": "^5.2.2",
     "yargs": "^17.7.2"
   }

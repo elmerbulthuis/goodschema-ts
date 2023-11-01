@@ -50,7 +50,7 @@ export function generatePackage(
     const codeGenerator = new MainTsCodeGenerator(
       factory,
       namesData,
-      intermediateData.nodes,
+      intermediateData.schemas,
     );
     const statements = codeGenerator.getStatements();
     const filePath = path.join(options.directoryPath, "main.ts");
@@ -61,7 +61,7 @@ export function generatePackage(
     const codeGenerator = new MainSpecsTsCodeGenerator(
       factory,
       namesData,
-      intermediateData.nodes,
+      intermediateData.schemas,
     );
     const statements = codeGenerator.getStatements();
     const filePath = path.join(options.directoryPath, "main.spec.ts");

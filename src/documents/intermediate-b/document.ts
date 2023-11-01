@@ -18,10 +18,10 @@ export class Document extends DocumentBase<SchemaJson> {
   }
 
   public getIntermediateNodeEntries(): Iterable<readonly [string, Node]> {
-    return Object.entries(this.documentNode.nodes);
+    return Object.entries(this.documentNode.schemas);
   }
 
   public getNodeUrls(): Iterable<URL> {
-    return Object.keys(this.documentNode.nodes).map((id) => new URL(id));
+    return Object.keys(this.documentNode.schemas).map((id) => new URL(id));
   }
 }

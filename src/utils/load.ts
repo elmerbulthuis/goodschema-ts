@@ -6,7 +6,6 @@ export async function loadJSON(url: URL): Promise<unknown> {
     case "https:": {
       const result = await fetch(url);
       const schemaRootNode = await result.json();
-
       return schemaRootNode;
     }
 

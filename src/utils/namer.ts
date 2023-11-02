@@ -65,20 +65,25 @@ export class Namer {
   }
 
   public getNames() {
-    return Object.fromEntries(this.getNameEntries());
+    const names = Object.fromEntries(this.getNameEntries());
+    debugger;
+    return names;
   }
 
   private *getNameEntries(): Iterable<[string, string]> {
-    let nameMap = new Map<string, Array<[NameNode | undefined, NameNode]>>();
+    let nameMap = new Map<
+      string, // this is the name
+      Array<[NameNode | undefined, NameNode]>
+    >();
 
     /*
-        Should we continue?
-        */
+    Should we continue?
+    */
     let shouldContinueCounter = 0;
 
     /*
-        Initially fill nameMap
-        */
+    Initially fill nameMap
+    */
     for (const [id, node] of Object.entries(this.leafNodes)) {
       let nodes = nameMap.get(node.part);
       if (nodes == null) {
@@ -94,8 +99,8 @@ export class Namer {
     }
 
     /*
-        De-duping process
-        */
+    De-duping process
+    */
     while (shouldContinueCounter > 0) {
       const newNameMap = new Map<
         string,
@@ -106,40 +111,43 @@ export class Namer {
 
       for (const [name, nodes] of nameMap) {
         /*
-                if nodes.length is one then there are no duplicates. If then name starts
-                with a letter, we can move on to the next name.
-                */
-        if (nodes.length === 1 && startsWithLetterRe.test(name)) {
+        if nodes.length is one then there are no duplicates. If then
+        name starts with a letter, we can move on to the next name.
+        */
+        if (
+          nodes.length === 1 &&
+          startsWithLetterRe.test(name) &&
+          !newNameMap.has(name)
+        ) {
           const [[currentNode, targetNode]] = nodes;
           newNameMap.set(name, [[currentNode, targetNode]]);
           continue;
         }
 
         /*
-                Collect unique parents nameParts. If there are no unique parents, we want
-                to not include the parents namePart in the name.
-                */
+        Collect unique parents nameParts. If there are no unique parents, we want
+        to not include the parents namePart in the name.
+        */
         const uniqueParentNameParts = new Set<string | undefined>();
         for (const [currentNode] of nodes) {
-          if (!currentNode) {
+          /*
+          we are at the root or have no parent, we cannot add a parent's part!
+          */
+          if (currentNode?.parent == null) {
             continue;
           }
 
-          uniqueParentNameParts.add(currentNode?.parent?.part);
+          uniqueParentNameParts.add(currentNode.parent.part);
         }
 
         for (const [currentNode, targetNode] of nodes) {
-          if (currentNode == null) {
-            newNameMap.set(name, [[undefined, targetNode]]);
-            if (!startsWithLetterRe.test(name)) {
-              shouldContinueCounter += 1;
-            }
-            continue;
-          }
-
-          let newCurrentNode = currentNode.parent;
+          let newCurrentNode = currentNode?.parent;
           let newName = name;
           if (newCurrentNode != null) {
+            /*
+            if uniqueParentNameParts size == 1 then there are no unique parents.
+            If the size is > 1 then lest prepend the unique name to the newName
+            */
             if (
               uniqueParentNameParts.size > 1 ||
               !startsWithLetterRe.test(newName)
@@ -150,24 +158,35 @@ export class Namer {
 
           let newNodes = newNameMap.get(newName);
           if (newNodes == null) {
+            /*
+            create new nodes if it does not exist, add it to the new name map
+            */
             newNodes = [];
             newNameMap.set(newName, newNodes);
             if (!startsWithLetterRe.test(newName)) {
               shouldContinueCounter += 1;
             }
           } else {
+            /*
+            if the newNodes was not null then we are going to push something
+            to it later, and that will result in at least 2 nodes, so continue
+            */
             shouldContinueCounter += 1;
           }
           newNodes.push([newCurrentNode, targetNode]);
         }
       }
 
+      /*
+      set the current name map to the new one, and possibly continue the
+      deduping
+      */
       nameMap = newNameMap;
     }
 
     /*
-        Output nameMap into an iterable of entries
-        */
+    Output nameMap into an iterable of entries
+    */
     for (const [name, nodes] of nameMap) {
       assert(nodes.length === 1);
       const [[currentNode, targetNode]] = nodes;

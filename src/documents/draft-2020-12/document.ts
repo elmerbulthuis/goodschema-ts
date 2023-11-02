@@ -1,12 +1,12 @@
 import {
-  Draft202012Schema as Node,
+  Draft202012Schema as N,
   isDraft202012Schema as isNode,
 } from "@jns42/jns42-schema-draft-2020-12";
 import * as schemaIntermediateB from "@jns42/jns42-schema-intermediate-b";
 import { DocumentContext } from "../document-context.js";
 import { SchemaDocumentBase } from "../schema-document-base.js";
 
-export class Document extends SchemaDocumentBase<Node> {
+export class Document extends SchemaDocumentBase<N> {
   private readonly anchorMap = new Map<string, string>();
   private readonly dynamicAnchorMap = new Map<string, string>();
 
@@ -39,7 +39,7 @@ export class Document extends SchemaDocumentBase<Node> {
 
   //#region document
 
-  protected isDocumentNode(node: unknown): node is Node {
+  protected isDocumentNode(node: unknown): node is N {
     return isNode(node);
   }
 
@@ -59,7 +59,7 @@ export class Document extends SchemaDocumentBase<Node> {
 
   //#region node
 
-  protected isNodeEmbeddedSchema(node: Node): boolean {
+  protected isNodeEmbeddedSchema(node: N): boolean {
     const nodeId = this.selectNodeId(node);
     if (nodeId == null) {
       return false;
@@ -67,10 +67,10 @@ export class Document extends SchemaDocumentBase<Node> {
     return true;
   }
 
-  protected pointerToNodeHash(nodePointer: string): string {
+  public pointerToNodeHash(nodePointer: string): string {
     return nodePointer === "" ? "" : `#${nodePointer}`;
   }
-  protected nodeHashToPointer(nodeHash: string): string {
+  public nodeHashToPointer(nodeHash: string): string {
     if (nodeHash === "") {
       return "";
     }
@@ -86,7 +86,7 @@ export class Document extends SchemaDocumentBase<Node> {
 
   protected getIntermediateReference(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.Reference | undefined {
     const nodeRef = this.selectNodeRef(node);
     if (nodeRef != null) {
@@ -155,7 +155,7 @@ export class Document extends SchemaDocumentBase<Node> {
 
   //#region core selectors
 
-  protected selectNodeTypes(node: Node) {
+  protected selectNodeTypes(node: N) {
     if (typeof node === "object" && node.type != null) {
       if (Array.isArray(node.type)) {
         return node.type as string[];
@@ -165,37 +165,37 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected selectNodeSchema(node: Node) {
+  protected selectNodeSchema(node: N) {
     if (typeof node === "object") {
       return node.$schema;
     }
   }
 
-  protected selectNodeId(node: Node) {
+  protected selectNodeId(node: N) {
     if (typeof node === "object") {
       return node.$id;
     }
   }
 
-  protected selectNodeAnchor(node: Node) {
+  protected selectNodeAnchor(node: N) {
     if (typeof node === "object") {
       return node.$anchor;
     }
   }
 
-  protected selectNodeDynamicAnchor(node: Node) {
+  protected selectNodeDynamicAnchor(node: N) {
     if (typeof node === "object") {
       return node.$dynamicAnchor;
     }
   }
 
-  protected selectNodeRef(node: Node) {
+  protected selectNodeRef(node: N) {
     if (typeof node === "object") {
       return node.$ref;
     }
   }
 
-  protected selectNodeDynamicRef(node: Node) {
+  protected selectNodeDynamicRef(node: N) {
     if (typeof node === "object") {
       return node.$dynamicRef;
     }
@@ -205,25 +205,25 @@ export class Document extends SchemaDocumentBase<Node> {
 
   //#region metadata selectors
 
-  protected selectNodeTitle(node: Node) {
+  protected selectNodeTitle(node: N) {
     if (typeof node === "object") {
       return node.title;
     }
   }
 
-  protected selectNodeDescription(node: Node) {
+  protected selectNodeDescription(node: N) {
     if (typeof node === "object") {
       return node.description;
     }
   }
 
-  protected selectNodeDeprecated(node: Node) {
+  protected selectNodeDeprecated(node: N) {
     if (typeof node === "object") {
       return node.deprecated;
     }
   }
 
-  protected selectNodeExamples(node: Node) {
+  protected selectNodeExamples(node: N) {
     if (typeof node === "object") {
       return node.examples;
     }
@@ -233,10 +233,7 @@ export class Document extends SchemaDocumentBase<Node> {
 
   //#region pointers selectors
 
-  protected *selectNodePropertiesPointerEntries(
-    nodePointer: string,
-    node: Node,
-  ) {
+  protected *selectNodePropertiesPointerEntries(nodePointer: string, node: N) {
     if (typeof node === "object" && node.properties != null) {
       for (const key of Object.keys(node.properties)) {
         const subNodePointer = [nodePointer, "properties", key].join("/");
@@ -247,7 +244,7 @@ export class Document extends SchemaDocumentBase<Node> {
 
   protected *selectNodeDependentSchemasPointerEntries(
     nodePointer: string,
-    node: Node,
+    node: N,
   ) {
     if (typeof node === "object" && node.dependentSchemas != null) {
       for (const key of Object.keys(node.dependentSchemas)) {
@@ -259,7 +256,7 @@ export class Document extends SchemaDocumentBase<Node> {
 
   protected *selectNodePatternPropertyPointerEntries(
     nodePointer: string,
-    node: Node,
+    node: N,
   ) {
     if (typeof node === "object" && node.patternProperties != null) {
       for (const key of Object.keys(node.patternProperties)) {
@@ -275,7 +272,7 @@ export class Document extends SchemaDocumentBase<Node> {
 
   //#region schema selectors
 
-  protected *selectSubNodeDefinitionsEntries(nodePointer: string, node: Node) {
+  protected *selectSubNodeDefinitionsEntries(nodePointer: string, node: N) {
     if (typeof node === "object" && node.$defs != null) {
       for (const [key, subNode] of Object.entries(node.$defs)) {
         const subNodePointer = [nodePointer, "$defs", key].join("/");
@@ -284,10 +281,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodeObjectPropertyEntries(
-    nodePointer: string,
-    node: Node,
-  ) {
+  protected *selectSubNodeObjectPropertyEntries(nodePointer: string, node: N) {
     if (typeof node === "object" && node.properties != null) {
       for (const [key, subNode] of Object.entries(node.properties)) {
         const subNodePointer = [nodePointer, "properties", key].join("/");
@@ -296,10 +290,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodeMapPropertiesEntries(
-    nodePointer: string,
-    node: Node,
-  ) {
+  protected *selectSubNodeMapPropertiesEntries(nodePointer: string, node: N) {
     if (typeof node === "object" && node.additionalProperties != null) {
       const subNode = node.additionalProperties;
       const subNodePointer = [nodePointer, "additionalProperties"].join("/");
@@ -309,7 +300,7 @@ export class Document extends SchemaDocumentBase<Node> {
 
   protected *selectSubNodePatternPropertiesEntries(
     nodePointer: string,
-    node: Node,
+    node: N,
   ) {
     if (typeof node === "object" && node.patternProperties != null) {
       for (const [key, subNode] of Object.entries(node.patternProperties)) {
@@ -321,10 +312,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodePropertyNamesEntries(
-    nodePointer: string,
-    node: Node,
-  ) {
+  protected *selectSubNodePropertyNamesEntries(nodePointer: string, node: N) {
     if (typeof node === "object" && node.propertyNames != null) {
       const subNode = node.propertyNames;
       const subNodePointer = [nodePointer, "propertyNames"].join("/");
@@ -332,7 +320,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodeTupleItemsEntries(nodePointer: string, node: Node) {
+  protected *selectSubNodeTupleItemsEntries(nodePointer: string, node: N) {
     if (typeof node === "object" && node.prefixItems != null) {
       for (const [key, subNode] of Object.entries(node.prefixItems)) {
         const subNodePointer = [nodePointer, "prefixItems", key].join("/");
@@ -341,7 +329,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodeArrayItemsEntries(nodePointer: string, node: Node) {
+  protected *selectSubNodeArrayItemsEntries(nodePointer: string, node: N) {
     if (typeof node === "object" && node.items != null) {
       const subNode = node.items;
       const subNodePointer = [nodePointer, "items"].join("/");
@@ -349,7 +337,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodeContainsEntries(nodePointer: string, node: Node) {
+  protected *selectSubNodeContainsEntries(nodePointer: string, node: N) {
     if (typeof node === "object" && node.contains != null) {
       const subNode = node.contains;
       const subNodePointer = [nodePointer, "contains"].join("/");
@@ -357,7 +345,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodeAllOfEntries(nodePointer: string, node: Node) {
+  protected *selectSubNodeAllOfEntries(nodePointer: string, node: N) {
     if (typeof node === "object" && node.allOf != null) {
       for (const [key, subNode] of Object.entries(node.allOf)) {
         const subNodePointer = [nodePointer, "allOf", key].join("/");
@@ -366,7 +354,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodeAnyOfEntries(nodePointer: string, node: Node) {
+  protected *selectSubNodeAnyOfEntries(nodePointer: string, node: N) {
     if (typeof node === "object" && node.anyOf != null) {
       for (const [key, subNode] of Object.entries(node.anyOf)) {
         const subNodePointer = [nodePointer, "anyOf", key].join("/");
@@ -375,7 +363,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodeOneOfEntries(nodePointer: string, node: Node) {
+  protected *selectSubNodeOneOfEntries(nodePointer: string, node: N) {
     if (typeof node === "object" && node.oneOf != null) {
       for (const [key, subNode] of Object.entries(node.oneOf)) {
         const subNodePointer = [nodePointer, "oneOf", key].join("/");
@@ -384,7 +372,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodeNotEntries(nodePointer: string, node: Node) {
+  protected *selectSubNodeNotEntries(nodePointer: string, node: N) {
     if (typeof node === "object" && node.not != null) {
       const subNode = node.not;
       const subNodePointer = [nodePointer, "not"].join("/");
@@ -392,7 +380,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodeIfEntries(nodePointer: string, node: Node) {
+  protected *selectSubNodeIfEntries(nodePointer: string, node: N) {
     if (typeof node === "object" && node.if != null) {
       const subNode = node.if;
       const subNodePointer = [nodePointer, "if"].join("/");
@@ -400,7 +388,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodeThenEntries(nodePointer: string, node: Node) {
+  protected *selectSubNodeThenEntries(nodePointer: string, node: N) {
     if (typeof node === "object" && node.then != null) {
       const subNode = node.then;
       const subNodePointer = [nodePointer, "then"].join("/");
@@ -408,7 +396,7 @@ export class Document extends SchemaDocumentBase<Node> {
     }
   }
 
-  protected *selectSubNodeElseEntries(nodePointer: string, node: Node) {
+  protected *selectSubNodeElseEntries(nodePointer: string, node: N) {
     if (typeof node === "object" && node.else != null) {
       const subNode = node.else;
       const subNodePointer = [nodePointer, "else"].join("/");
@@ -420,103 +408,103 @@ export class Document extends SchemaDocumentBase<Node> {
 
   //#region validation selectors
 
-  protected selectValidationMaximumProperties(node: Node) {
+  protected selectValidationMaximumProperties(node: N) {
     if (typeof node === "object") {
       return node.maxProperties;
     }
   }
 
-  protected selectValidationMinimumProperties(node: Node) {
+  protected selectValidationMinimumProperties(node: N) {
     if (typeof node === "object") {
       return node.minProperties;
     }
   }
 
-  protected selectValidationRequired(node: Node) {
+  protected selectValidationRequired(node: N) {
     if (typeof node === "object") {
       return node.required;
     }
   }
 
-  protected selectValidationMinimumItems(node: Node) {
+  protected selectValidationMinimumItems(node: N) {
     if (typeof node === "object") {
       return node.minItems;
     }
   }
 
-  protected selectValidationMaximumItems(node: Node) {
+  protected selectValidationMaximumItems(node: N) {
     if (typeof node === "object") {
       return node.maxItems;
     }
   }
 
-  protected selectValidationUniqueItems(node: Node) {
+  protected selectValidationUniqueItems(node: N) {
     if (typeof node === "object") {
       return node.uniqueItems;
     }
   }
 
-  protected selectValidationMinimumLength(node: Node) {
+  protected selectValidationMinimumLength(node: N) {
     if (typeof node === "object") {
       return node.minLength;
     }
   }
 
-  protected selectValidationMaximumLength(node: Node) {
+  protected selectValidationMaximumLength(node: N) {
     if (typeof node === "object") {
       return node.maxLength;
     }
   }
 
-  protected selectValidationValuePattern(node: Node) {
+  protected selectValidationValuePattern(node: N) {
     if (typeof node === "object") {
       return node.pattern;
     }
   }
 
-  protected selectValidationValueFormat(node: Node) {
+  protected selectValidationValueFormat(node: N) {
     if (typeof node === "object") {
       return node.format;
     }
   }
 
-  protected selectValidationMinimumInclusive(node: Node) {
+  protected selectValidationMinimumInclusive(node: N) {
     if (typeof node === "object") {
       return node.minimum;
     }
   }
 
-  protected selectValidationMinimumExclusive(node: Node) {
+  protected selectValidationMinimumExclusive(node: N) {
     if (typeof node === "object") {
       return node.exclusiveMinimum;
     }
   }
 
-  protected selectValidationMaximumInclusive(node: Node) {
+  protected selectValidationMaximumInclusive(node: N) {
     if (typeof node === "object") {
       return node.maximum;
     }
   }
 
-  protected selectValidationMaximumExclusive(node: Node) {
+  protected selectValidationMaximumExclusive(node: N) {
     if (typeof node === "object") {
       return node.exclusiveMaximum;
     }
   }
 
-  protected selectValidationMultipleOf(node: Node) {
+  protected selectValidationMultipleOf(node: N) {
     if (typeof node === "object") {
       return node.multipleOf;
     }
   }
 
-  protected selectValidationEnum(node: Node) {
+  protected selectValidationEnum(node: N) {
     if (typeof node === "object") {
       return node.enum;
     }
   }
 
-  protected selectValidationConst(node: Node) {
+  protected selectValidationConst(node: N) {
     if (typeof node === "object") {
       return node.const;
     }

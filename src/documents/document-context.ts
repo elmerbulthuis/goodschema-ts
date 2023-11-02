@@ -1,5 +1,10 @@
 import * as schemaIntermediateB from "@jns42/jns42-schema-intermediate-b";
-import { discoverSchemaId, loadJSON } from "../utils/index.js";
+import {
+  discoverSchemaId,
+  loadJSON,
+  normalizeUrl,
+  readJson,
+} from "../utils/index.js";
 import { DocumentBase } from "./document-base.js";
 import { SchemaDocumentBase } from "./schema-document-base.js";
 
@@ -15,7 +20,6 @@ export type DocumentFactory<N = unknown> = (
 ) => DocumentBase<N>;
 
 export class DocumentContext {
-  private retrieved = new Set<string>();
   /**
    * document factories by schema identifier
    */
@@ -28,6 +32,14 @@ export class DocumentContext {
    * maps node urls to their documents
    */
   private nodeDocuments = new Map<string, URL>();
+  /**
+   * all loaded nodes
+   */
+  private nodeCache = new Map<string, unknown>();
+  /**
+   * keep track of what we have been loading (so we only load it once)
+   */
+  private loaded = new Set<string>();
 
   public registerFactory(schema: string, factory: DocumentFactory) {
     /**
@@ -54,7 +66,7 @@ export class DocumentContext {
   }
 
   public getDocument(documentUrl: URL) {
-    const documentId = documentUrl.toString();
+    const documentId = normalizeUrl(documentUrl).toString();
     const document = this.documents.get(documentId);
     if (document == null) {
       throw new TypeError(`document not found ${documentId}`);
@@ -63,7 +75,7 @@ export class DocumentContext {
   }
 
   public getDocumentForNode(nodeUrl: URL) {
-    const nodeId = nodeUrl.toString();
+    const nodeId = normalizeUrl(nodeUrl).toString();
     const documentUrl = this.nodeDocuments.get(nodeId);
     if (documentUrl == null) {
       throw new TypeError(`document not found for node ${nodeId}`);
@@ -77,56 +89,102 @@ export class DocumentContext {
     antecedentUrl: URL | null,
     defaultSchemaId: string,
   ) {
-    retrievalUrl = new URL("", retrievalUrl);
-
-    const retrievalId = retrievalUrl.toString();
-    if (this.retrieved.has(retrievalId)) {
-      return;
+    const retrievalId = normalizeUrl(retrievalUrl).toString();
+    if (!this.nodeCache.has(retrievalId)) {
+      const documentNode = await loadJSON(retrievalUrl);
+      this.fillNodeCache(retrievalUrl, documentNode);
     }
-    this.retrieved.add(retrievalId);
 
-    const node = await loadJSON(retrievalUrl);
-    await this.loadFromNode(
+    await this.loadFromCache(
       retrievalUrl,
       givenUrl,
       antecedentUrl,
-      node,
       defaultSchemaId,
     );
   }
 
-  public async loadFromNode(
+  public async loadFromDocument(
     retrievalUrl: URL,
     givenUrl: URL,
     antecedentUrl: URL | null,
     documentNode: unknown,
     defaultSchemaId: string,
   ) {
-    retrievalUrl = new URL("", retrievalUrl);
+    const retrievalId = normalizeUrl(retrievalUrl).toString();
+    if (!this.nodeCache.has(retrievalId)) {
+      this.fillNodeCache(retrievalUrl, documentNode);
+    }
 
-    const retrievalId = retrievalUrl.toString();
-    this.retrieved.add(retrievalId);
+    await this.loadFromCache(
+      retrievalUrl,
+      givenUrl,
+      antecedentUrl,
+      defaultSchemaId,
+    );
+  }
 
-    const schemaId = discoverSchemaId(documentNode) ?? defaultSchemaId;
+  private fillNodeCache(retrievalUrl: URL, documentNode: unknown) {
+    const retrievalBaseUrl = new URL("", retrievalUrl);
+    for (const [pointer, node] of readJson("", documentNode)) {
+      const nodeRetrievalUrl = new URL(`#${pointer}`, retrievalBaseUrl);
+      const nodeRetrievalId = normalizeUrl(nodeRetrievalUrl).toString();
+      if (this.nodeCache.has(nodeRetrievalId)) {
+        throw new TypeError(`duplicate node with id ${nodeRetrievalId}`);
+      }
+
+      this.nodeCache.set(nodeRetrievalId, node);
+    }
+  }
+
+  private async loadFromCache(
+    retrievalUrl: URL,
+    givenUrl: URL,
+    antecedentUrl: URL | null,
+    defaultSchemaId: string,
+  ) {
+    const retrievalId = normalizeUrl(retrievalUrl).toString();
+
+    if (this.loaded.has(retrievalId)) {
+      return;
+    }
+    this.loaded.add(retrievalId);
+
+    const node = this.nodeCache.get(retrievalId);
+    if (node == null) {
+      throw new TypeError("node not found in index");
+    }
+
+    const schemaId = discoverSchemaId(node) ?? defaultSchemaId;
     const factory = this.factories.get(schemaId);
     if (factory == null) {
       throw new TypeError(`no factory found for ${schemaId}`);
     }
+
     const document = factory({
       retrievalUrl,
       givenUrl,
       antecedentUrl,
-      documentNode,
+      documentNode: node,
     });
-    const documentId = document.documentNodeUrl.toString();
+    const documentId = normalizeUrl(document.documentNodeUrl).toString();
     if (this.documents.has(documentId)) {
       throw new TypeError(`duplicate document ${documentId}`);
     }
     this.documents.set(documentId, document);
 
     for (const nodeUrl of document.getNodeUrls()) {
-      const nodeId = nodeUrl.toString();
-      if (this.nodeDocuments.has(nodeId)) {
+      const nodeId = normalizeUrl(nodeUrl).toString();
+      const documentNodeUrlPrevious = this.nodeDocuments.get(nodeId);
+      if (documentNodeUrlPrevious != null) {
+        const documentNodeIdPrevious = documentNodeUrlPrevious.toString();
+        if (documentNodeIdPrevious.startsWith(documentId)) {
+          continue;
+        }
+        if (documentId.startsWith(documentNodeIdPrevious)) {
+          // longest url has preference
+          this.nodeDocuments.set(nodeId, document.documentNodeUrl);
+          continue;
+        }
         throw new TypeError(`duplicate node with id ${nodeId}`);
       }
       this.nodeDocuments.set(nodeId, document.documentNodeUrl);
@@ -159,7 +217,7 @@ export class DocumentContext {
       givenUrl: embeddedGivenUrl,
       node,
     } of document.getEmbeddedDocuments(retrievalUrl)) {
-      await this.loadFromNode(
+      await this.loadFromDocument(
         embeddedRetrievalUrl,
         embeddedGivenUrl,
         document.documentNodeUrl,

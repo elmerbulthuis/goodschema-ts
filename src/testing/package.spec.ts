@@ -80,7 +80,7 @@ async function runTest(packageName: string) {
           new schemaIntermediateB.Document(givenUrl, rootNode),
       );
 
-      await context.loadFromNode(
+      await context.loadFromDocument(
         testUrl,
         testUrl,
         null,

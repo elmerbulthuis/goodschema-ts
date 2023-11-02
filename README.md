@@ -2,6 +2,14 @@
 
 Generate types from a JsonSchema document.
 
+## Loading
+
+Loading documents can be done via the `loadFromUrl` and `LoadFromDocument`. Internally `loadFromUrl` uses `loadFromDocument`.
+
+`loadFromUrl` will first check if a document is already loaded, if not then it is fetched. Then it's up to `loadFromDocument` to index the document and create the `Document` objects from it. Then if a document is a `SchemaDocumentBase` alls referenced and embedded documents are loaded.
+
+Indexing the document is reading all of the nodes in the document and mapping those to the created `Document`.
+
 ## Mapping
 
 Mapping between the intermediate model and TypeScript types.

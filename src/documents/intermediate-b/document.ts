@@ -24,4 +24,11 @@ export class Document extends DocumentBase<SchemaJson> {
   public getNodeUrls(): Iterable<URL> {
     return Object.keys(this.documentNode.schemas).map((id) => new URL(id));
   }
+
+  public pointerToNodeHash(nodePointer: string): string {
+    throw new Error("Method not implemented.");
+  }
+  public nodeHashToPointer(nodeHash: string): string {
+    throw new Error("Method not implemented.");
+  }
 }

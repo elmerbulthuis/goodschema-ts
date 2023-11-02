@@ -13,9 +13,7 @@ export interface ReferencedDocument {
   givenUrl: URL;
 }
 
-export abstract class SchemaDocumentBase<
-  Node = unknown,
-> extends DocumentBase<Node> {
+export abstract class SchemaDocumentBase<N = unknown> extends DocumentBase<N> {
   /**
    * The unique url for this document, possibly derived from the node. This
    * is not necessarily the location where the document was retrieved from.
@@ -28,7 +26,7 @@ export abstract class SchemaDocumentBase<
   /**
    * All nodes in the document, indexed by pointer
    */
-  protected readonly nodes: Map<string, Node>;
+  protected readonly nodes: Map<string, N>;
 
   /**
    * Constructor for creating new documents
@@ -52,18 +50,18 @@ export abstract class SchemaDocumentBase<
     this.nodes = new Map(this.getNodePairs());
   }
 
-  protected abstract isNodeEmbeddedSchema(node: Node): boolean;
+  protected abstract isNodeEmbeddedSchema(node: N): boolean;
 
   /**
    * get all embedded document nodes
    */
   public *getEmbeddedDocuments(retrievalUrl: URL): Iterable<EmbeddedDocument> {
-    const queue = new Array<readonly [string, Node]>();
+    const queue = new Array<readonly [string, N]>();
     queue.push(
       ...this.selectSubNodes(this.documentNodePointer, this.documentNode),
     );
 
-    let pair: readonly [string, Node] | undefined;
+    let pair: readonly [string, N] | undefined;
     while ((pair = queue.shift()) != null) {
       const [nodePointer, node] = pair;
 
@@ -75,8 +73,8 @@ export abstract class SchemaDocumentBase<
       }
       yield {
         node,
-        retrievalUrl: new URL("", new URL(nodeId, retrievalUrl)),
-        givenUrl: new URL("", new URL(nodeId, this.documentNodeUrl)),
+        retrievalUrl: new URL(nodeId, retrievalUrl),
+        givenUrl: new URL(nodeId, this.documentNodeUrl),
       };
     }
   }
@@ -93,8 +91,8 @@ export abstract class SchemaDocumentBase<
       }
 
       yield {
-        retrievalUrl: new URL("", new URL(nodeRef, retrievalUrl)),
-        givenUrl: new URL("", new URL(nodeRef, this.documentNodeUrl)),
+        retrievalUrl: new URL(nodeRef, retrievalUrl),
+        givenUrl: new URL(nodeRef, this.documentNodeUrl),
       };
 
       /*
@@ -104,15 +102,15 @@ export abstract class SchemaDocumentBase<
     }
   }
 
-  protected *getNodePairs(): Iterable<readonly [string, Node]> {
-    const queue = new Array<readonly [string, Node]>();
+  protected *getNodePairs(): Iterable<readonly [string, N]> {
+    const queue = new Array<readonly [string, N]>();
     queue.push(
       ...this.selectSubNodes(this.documentNodePointer, this.documentNode),
     );
 
     yield [this.documentNodePointer, this.documentNode];
 
-    let pair: readonly [string, Node] | undefined;
+    let pair: readonly [string, N] | undefined;
     while ((pair = queue.shift()) != null) {
       const [nodePointer, node] = pair;
 
@@ -137,17 +135,12 @@ export abstract class SchemaDocumentBase<
     return nodeUrl;
   }
 
-  public pointerToNodeUrl(nodePointer: string): URL {
-    return new URL(this.pointerToNodeHash(nodePointer), this.documentNodeUrl);
-  }
   public nodeUrlToPointer(nodeUrl: URL): string {
     if (nodeUrl.origin !== this.documentNodeUrl.origin) {
       throw new TypeError("origins should match");
     }
     return this.nodeHashToPointer(nodeUrl.hash);
   }
-  protected abstract pointerToNodeHash(nodePointer: string): string;
-  protected abstract nodeHashToPointer(nodeHash: string): string;
 
   /**
    * All unique node urls that this document contains
@@ -216,7 +209,7 @@ export abstract class SchemaDocumentBase<
   }
   protected getIntermediateMetadataSection(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.MetadataSection {
     const title = this.selectNodeTitle(node) ?? "";
     const description = this.selectNodeDescription(node) ?? "";
@@ -232,7 +225,7 @@ export abstract class SchemaDocumentBase<
   }
   protected getIntermediateTypesSection(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.TypesSection {
     if (node === true) {
       return ["any"];
@@ -255,7 +248,7 @@ export abstract class SchemaDocumentBase<
 
   protected getIntermediateAssertionsSection(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.AssertionsSection {
     const booleanAssertions = this.getIntermediateBooleanAssertion(
       nodePointer,
@@ -290,7 +283,7 @@ export abstract class SchemaDocumentBase<
   }
   protected getIntermediateApplicatorsSection(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.ApplicatorsSection {
     const reference = this.getIntermediateReference(nodePointer, node);
     const allOf = this.getIntermediateAllOf(nodePointer, node);
@@ -346,7 +339,7 @@ export abstract class SchemaDocumentBase<
 
   protected getIntermediateBooleanAssertion(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.BooleanAssertion | undefined {
     const enumValues = this.selectValidationEnum(node);
     const constValue = this.selectValidationConst(node);
@@ -365,7 +358,7 @@ export abstract class SchemaDocumentBase<
   }
   protected getIntermediateIntegerAssertion(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.IntegerAssertion | undefined {
     const enumValues = this.selectValidationEnum(node);
     const constValue = this.selectValidationConst(node);
@@ -395,7 +388,7 @@ export abstract class SchemaDocumentBase<
   }
   protected getIntermediateNumberAssertion(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.NumberAssertion | undefined {
     const enumValues = this.selectValidationEnum(node);
     const constValue = this.selectValidationConst(node);
@@ -425,7 +418,7 @@ export abstract class SchemaDocumentBase<
   }
   protected getIntermediateStringAssertion(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.StringAssertion | undefined {
     const enumValues = this.selectValidationEnum(node);
     const constValue = this.selectValidationConst(node);
@@ -453,7 +446,7 @@ export abstract class SchemaDocumentBase<
   }
   protected getIntermediateArrayAssertion(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.ArrayAssertion | undefined {
     const minimumItems = this.selectValidationMinimumItems(node);
     const maximumItems = this.selectValidationMaximumItems(node);
@@ -467,7 +460,7 @@ export abstract class SchemaDocumentBase<
   }
   protected getIntermediateMapAssertion(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.MapAssertion | undefined {
     const minimumProperties = this.selectValidationMinimumProperties(node);
     const maximumProperties = this.selectValidationMaximumProperties(node);
@@ -487,7 +480,7 @@ export abstract class SchemaDocumentBase<
 
   protected getIntermediateAllOf(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.AllOf | undefined {
     return this.mapEntriesToManyNodeIds(nodePointer, node, [
       ...this.selectSubNodeAllOfEntries(nodePointer, node),
@@ -495,7 +488,7 @@ export abstract class SchemaDocumentBase<
   }
   protected getIntermediateAnyOf(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.AnyOf | undefined {
     return this.mapEntriesToManyNodeIds(nodePointer, node, [
       ...this.selectSubNodeAnyOfEntries(nodePointer, node),
@@ -503,7 +496,7 @@ export abstract class SchemaDocumentBase<
   }
   protected getIntermediateOneOf(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.OneOf | undefined {
     return this.mapEntriesToManyNodeIds(nodePointer, node, [
       ...this.selectSubNodeOneOfEntries(nodePointer, node),
@@ -512,7 +505,7 @@ export abstract class SchemaDocumentBase<
 
   protected getIntermediateNot(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.Not | undefined {
     return this.mapEntriesToSingleNodeId(nodePointer, node, [
       ...this.selectSubNodeNotEntries(nodePointer, node),
@@ -521,7 +514,7 @@ export abstract class SchemaDocumentBase<
 
   protected getIntermediateIf(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.If | undefined {
     return this.mapEntriesToSingleNodeId(nodePointer, node, [
       ...this.selectSubNodeIfEntries(nodePointer, node),
@@ -530,7 +523,7 @@ export abstract class SchemaDocumentBase<
 
   protected getIntermediateThen(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.Then | undefined {
     return this.mapEntriesToSingleNodeId(nodePointer, node, [
       ...this.selectSubNodeThenEntries(nodePointer, node),
@@ -539,7 +532,7 @@ export abstract class SchemaDocumentBase<
 
   protected getIntermediateElse(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.Else | undefined {
     return this.mapEntriesToSingleNodeId(nodePointer, node, [
       ...this.selectSubNodeElseEntries(nodePointer, node),
@@ -548,7 +541,7 @@ export abstract class SchemaDocumentBase<
 
   protected getIntermediateDependentSchemas(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.DependentSchemas | undefined {
     return this.mapPointerEntriesRecord(nodePointer, node, [
       ...this.selectNodeDependentSchemasPointerEntries(nodePointer, node),
@@ -557,7 +550,7 @@ export abstract class SchemaDocumentBase<
 
   protected getIntermediateTupleItems(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.TupleItems | undefined {
     return this.mapEntriesToManyNodeIds(nodePointer, node, [
       ...this.selectSubNodeTupleItemsEntries(nodePointer, node),
@@ -566,7 +559,7 @@ export abstract class SchemaDocumentBase<
 
   protected getIntermediateArrayItems(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.ArrayItems | undefined {
     return this.mapEntriesToSingleNodeId(nodePointer, node, [
       ...this.selectSubNodeArrayItemsEntries(nodePointer, node),
@@ -575,7 +568,7 @@ export abstract class SchemaDocumentBase<
 
   protected getIntermediateContains(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.Contains | undefined {
     return this.mapEntriesToSingleNodeId(nodePointer, node, [
       ...this.selectSubNodeContainsEntries(nodePointer, node),
@@ -584,7 +577,7 @@ export abstract class SchemaDocumentBase<
 
   protected getIntermediateObjectProperties(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.ObjectProperties | undefined {
     return this.mapPointerEntriesRecord(nodePointer, node, [
       ...this.selectNodePropertiesPointerEntries(nodePointer, node),
@@ -593,7 +586,7 @@ export abstract class SchemaDocumentBase<
 
   protected getIntermediateMapProperties(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.MapProperties | undefined {
     return this.mapEntriesToSingleNodeId(nodePointer, node, [
       ...this.selectSubNodeMapPropertiesEntries(nodePointer, node),
@@ -601,7 +594,7 @@ export abstract class SchemaDocumentBase<
   }
   protected getIntermediatePatternProperties(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.PatternProperties | undefined {
     return this.mapPointerEntriesRecord(nodePointer, node, [
       ...this.selectNodePatternPropertyPointerEntries(nodePointer, node),
@@ -609,7 +602,7 @@ export abstract class SchemaDocumentBase<
   }
   protected getIntermediatePropertyNames(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.PropertyNames | undefined {
     return this.mapEntriesToSingleNodeId(nodePointer, node, [
       ...this.selectSubNodePropertyNamesEntries(nodePointer, node),
@@ -618,7 +611,7 @@ export abstract class SchemaDocumentBase<
 
   protected abstract getIntermediateReference(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): schemaIntermediateB.Reference | undefined;
 
   //#endregion
@@ -627,8 +620,8 @@ export abstract class SchemaDocumentBase<
 
   protected *selectSubNodes(
     nodePointer: string,
-    node: Node,
-  ): Iterable<readonly [string, Node]> {
+    node: N,
+  ): Iterable<readonly [string, N]> {
     yield* this.selectSubNodeDefinitionsEntries(nodePointer, node);
     yield* this.selectSubNodeObjectPropertyEntries(nodePointer, node);
     yield* this.selectSubNodeMapPropertiesEntries(nodePointer, node);
@@ -646,134 +639,120 @@ export abstract class SchemaDocumentBase<
     yield* this.selectSubNodeElseEntries(nodePointer, node);
   }
 
-  protected abstract selectNodeSchema(node: Node): string | undefined;
-  protected abstract selectNodeId(node: Node): string | undefined;
-  protected abstract selectNodeRef(node: Node): string | undefined;
+  protected abstract selectNodeSchema(node: N): string | undefined;
+  protected abstract selectNodeId(node: N): string | undefined;
+  protected abstract selectNodeRef(node: N): string | undefined;
 
-  protected abstract selectNodeTitle(node: Node): string | undefined;
-  protected abstract selectNodeDescription(node: Node): string | undefined;
-  protected abstract selectNodeDeprecated(node: Node): boolean | undefined;
-  protected abstract selectNodeExamples(node: Node): any[] | undefined;
+  protected abstract selectNodeTitle(node: N): string | undefined;
+  protected abstract selectNodeDescription(node: N): string | undefined;
+  protected abstract selectNodeDeprecated(node: N): boolean | undefined;
+  protected abstract selectNodeExamples(node: N): any[] | undefined;
 
-  protected abstract selectNodeTypes(node: Node): string[] | undefined;
+  protected abstract selectNodeTypes(node: N): string[] | undefined;
 
   protected abstract selectValidationMaximumProperties(
-    node: Node,
+    node: N,
   ): number | undefined;
   protected abstract selectValidationMinimumProperties(
-    node: Node,
+    node: N,
   ): number | undefined;
-  protected abstract selectValidationRequired(node: Node): string[] | undefined;
-  protected abstract selectValidationMinimumItems(
-    node: Node,
-  ): number | undefined;
-  protected abstract selectValidationMaximumItems(
-    node: Node,
-  ): number | undefined;
-  protected abstract selectValidationUniqueItems(
-    node: Node,
-  ): boolean | undefined;
-  protected abstract selectValidationMinimumLength(
-    node: Node,
-  ): number | undefined;
-  protected abstract selectValidationMaximumLength(
-    node: Node,
-  ): number | undefined;
-  protected abstract selectValidationValuePattern(
-    node: Node,
-  ): string | undefined;
-  protected abstract selectValidationValueFormat(
-    node: Node,
-  ): string | undefined;
+  protected abstract selectValidationRequired(node: N): string[] | undefined;
+  protected abstract selectValidationMinimumItems(node: N): number | undefined;
+  protected abstract selectValidationMaximumItems(node: N): number | undefined;
+  protected abstract selectValidationUniqueItems(node: N): boolean | undefined;
+  protected abstract selectValidationMinimumLength(node: N): number | undefined;
+  protected abstract selectValidationMaximumLength(node: N): number | undefined;
+  protected abstract selectValidationValuePattern(node: N): string | undefined;
+  protected abstract selectValidationValueFormat(node: N): string | undefined;
   protected abstract selectValidationMinimumInclusive(
-    node: Node,
+    node: N,
   ): number | undefined;
   protected abstract selectValidationMinimumExclusive(
-    node: Node,
+    node: N,
   ): number | undefined;
   protected abstract selectValidationMaximumInclusive(
-    node: Node,
+    node: N,
   ): number | undefined;
   protected abstract selectValidationMaximumExclusive(
-    node: Node,
+    node: N,
   ): number | undefined;
-  protected abstract selectValidationMultipleOf(node: Node): number | undefined;
-  protected abstract selectValidationConst(node: Node): any | undefined;
-  protected abstract selectValidationEnum(node: Node): any[] | undefined;
+  protected abstract selectValidationMultipleOf(node: N): number | undefined;
+  protected abstract selectValidationConst(node: N): any | undefined;
+  protected abstract selectValidationEnum(node: N): any[] | undefined;
 
   protected abstract selectNodePropertiesPointerEntries(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): Iterable<readonly [string, string]>;
   protected abstract selectNodeDependentSchemasPointerEntries(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): Iterable<readonly [string, string]>;
   protected abstract selectNodePatternPropertyPointerEntries(
     nodePointer: string,
-    node: Node,
+    node: N,
   ): Iterable<readonly [string, string]>;
 
   protected abstract selectSubNodeDefinitionsEntries(
     nodePointer: string,
-    node: Node,
-  ): Iterable<readonly [string, Node]>;
+    node: N,
+  ): Iterable<readonly [string, N]>;
   protected abstract selectSubNodeObjectPropertyEntries(
     nodePointer: string,
-    node: Node,
-  ): Iterable<readonly [string, Node]>;
+    node: N,
+  ): Iterable<readonly [string, N]>;
   protected abstract selectSubNodeMapPropertiesEntries(
     nodePointer: string,
-    node: Node,
-  ): Iterable<readonly [string, Node]>;
+    node: N,
+  ): Iterable<readonly [string, N]>;
   protected abstract selectSubNodePatternPropertiesEntries(
     nodePointer: string,
-    node: Node,
-  ): Iterable<readonly [string, Node]>;
+    node: N,
+  ): Iterable<readonly [string, N]>;
   protected abstract selectSubNodePropertyNamesEntries(
     nodePointer: string,
-    node: Node,
-  ): Iterable<readonly [string, Node]>;
+    node: N,
+  ): Iterable<readonly [string, N]>;
   protected abstract selectSubNodeTupleItemsEntries(
     nodePointer: string,
-    node: Node,
-  ): Iterable<readonly [string, Node]>;
+    node: N,
+  ): Iterable<readonly [string, N]>;
   protected abstract selectSubNodeArrayItemsEntries(
     nodePointer: string,
-    node: Node,
-  ): Iterable<readonly [string, Node]>;
+    node: N,
+  ): Iterable<readonly [string, N]>;
   protected abstract selectSubNodeContainsEntries(
     nodePointer: string,
-    node: Node,
-  ): Iterable<readonly [string, Node]>;
+    node: N,
+  ): Iterable<readonly [string, N]>;
   protected abstract selectSubNodeAllOfEntries(
     nodePointer: string,
-    node: Node,
-  ): Iterable<readonly [string, Node]>;
+    node: N,
+  ): Iterable<readonly [string, N]>;
   protected abstract selectSubNodeAnyOfEntries(
     nodePointer: string,
-    node: Node,
-  ): Iterable<readonly [string, Node]>;
+    node: N,
+  ): Iterable<readonly [string, N]>;
   protected abstract selectSubNodeOneOfEntries(
     nodePointer: string,
-    node: Node,
-  ): Iterable<readonly [string, Node]>;
+    node: N,
+  ): Iterable<readonly [string, N]>;
   protected abstract selectSubNodeNotEntries(
     nodePointer: string,
-    node: Node,
-  ): Iterable<readonly [string, Node]>;
+    node: N,
+  ): Iterable<readonly [string, N]>;
   protected abstract selectSubNodeIfEntries(
     nodePointer: string,
-    node: Node,
-  ): Iterable<readonly [string, Node]>;
+    node: N,
+  ): Iterable<readonly [string, N]>;
   protected abstract selectSubNodeThenEntries(
     nodePointer: string,
-    node: Node,
-  ): Iterable<readonly [string, Node]>;
+    node: N,
+  ): Iterable<readonly [string, N]>;
   protected abstract selectSubNodeElseEntries(
     nodePointer: string,
-    node: Node,
-  ): Iterable<readonly [string, Node]>;
+    node: N,
+  ): Iterable<readonly [string, N]>;
 
   //#endregion
 
@@ -781,7 +760,7 @@ export abstract class SchemaDocumentBase<
 
   protected mapPointerEntriesRecord(
     nodePointer: string,
-    node: Node,
+    node: N,
     entries: Array<readonly [string, string]>,
   ): Record<string, string> | undefined {
     if (entries.length > 0) {
@@ -798,8 +777,8 @@ export abstract class SchemaDocumentBase<
 
   protected mapEntriesToManyNodeIds(
     nodePointer: string,
-    node: Node,
-    entries: Array<readonly [string, Node]>,
+    node: N,
+    entries: Array<readonly [string, N]>,
   ): Array<string> | undefined {
     if (entries.length > 0) {
       const nodeIds = entries.map(([typeNodePointer]) => {
@@ -813,8 +792,8 @@ export abstract class SchemaDocumentBase<
 
   protected mapEntriesToSingleNodeId(
     nodePointer: string,
-    node: Node,
-    entries: Array<readonly [string, Node]>,
+    node: N,
+    entries: Array<readonly [string, N]>,
   ): string | undefined {
     for (const [nodePointer] of entries) {
       const nodeUrl = this.pointerToNodeUrl(nodePointer);
@@ -848,7 +827,7 @@ export abstract class SchemaDocumentBase<
     }
   }
 
-  protected guessTypes(node: Node) {
+  protected guessTypes(node: N) {
     const nodeConst = this.selectValidationConst(node);
     const nodeEnums = this.selectValidationEnum(node);
     const types = new Set<schemaIntermediateB.TypesSectionItems>();

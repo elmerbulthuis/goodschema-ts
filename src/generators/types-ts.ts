@@ -388,25 +388,20 @@ export class TypesTsCodeGenerator extends CodeGeneratorBase {
     then?: string,
     $else?: string,
   ) {
-    const ifElement = this.generateTypeReference($if);
-
     const elements = new Array<ts.TypeNode>();
     if (then != null) {
-      elements.push(
-        this.factory.createIntersectionTypeNode([
-          ifElement,
-          this.generateTypeReference(then),
-        ]),
-      );
-    } else {
-      elements.push(ifElement);
+      elements.push(this.generateTypeReference(then));
     }
 
     if ($else != null) {
       elements.push(this.generateTypeReference($else));
     }
 
-    return this.factory.createUnionTypeNode(elements);
+    if (elements.length > 0) {
+      return this.factory.createUnionTypeNode(elements);
+    }
+
+    return this.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
   }
   protected generateNotCompoundDefinition(not: string) {
     return this.generateTypeReference(not);

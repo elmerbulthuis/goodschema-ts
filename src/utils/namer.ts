@@ -66,7 +66,6 @@ export class Namer {
 
   public getNames() {
     const names = Object.fromEntries(this.getNameEntries());
-    debugger;
     return names;
   }
 

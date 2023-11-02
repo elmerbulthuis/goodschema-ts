@@ -2,14 +2,6 @@
 
 Generate types from a JsonSchema document.
 
-## Loading
-
-Loading documents can be done via the `loadFromUrl` and `LoadFromDocument`. Internally `loadFromUrl` uses `loadFromDocument`.
-
-`loadFromUrl` will first check if a document is already loaded, if not then it is fetched. Then it's up to `loadFromDocument` to index the document and create the `Document` objects from it. Then if a document is a `SchemaDocumentBase` alls referenced and embedded documents are loaded.
-
-Indexing the document is reading all of the nodes in the document and mapping those to the created `Document`.
-
 ## Mapping
 
 Mapping between the intermediate model and TypeScript types.
@@ -76,10 +68,10 @@ type Type = AllOf1 & AllOf2;
 The `ifThenElse` compound is represented in TypeScript as an intersection join between `if` and `then` and then a union join with the `else` type. Example
 
 ```typescript
-type Type = (IfType & ThenType) | ElseType;
+type Type = ThenType | ElseType;
 ```
 
-If the `if` schema is valid then we want to validate the `then` schema, so both of them need to be valid, that is why we intersect them. If the `if` schema is not valid, then we want the `else` schema, `if` is not merged with the `else` schema because we don't expect it to be valid.
+If the `if` schema is valid then we want to validate the `then` schema. If the `if` schema is not valid, then we want the `else` schema.
 
 The `not` compound will only affect validation.
 
